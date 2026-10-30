@@ -1,1 +1,410 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login | SIMPLEXPING</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #0B1424;
+  color: #EDF3FC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 430px;
+  background: #111E32;
+  padding: 38px 30px;
+  border: 1px solid #263750;
+  border-radius: 18px;
+  box-shadow: 0 15px 45px rgba(0,0,0,.3);
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo-mark {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #244B7D, #3978D5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.logo h2 {
+  font-size: 23px;
+  letter-spacing: 1px;
+}
+
+.logo h2 span {
+  color: #5C99F0;
+}
+
+.logo p {
+  color: #9AAAC0;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+h1 {
+  font-size: 26px;
+  margin-bottom: 9px;
+}
+
+.subtitle {
+  color: #9AAAC0;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 26px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #31435E;
+  border-radius: 9px;
+  outline: none;
+  background: #0D192B;
+  color: white;
+  font-size: 14px;
+}
+
+input:focus {
+  border-color: #3978D5;
+  box-shadow: 0 0 0 3px rgba(57,120,213,.12);
+}
+
+input::placeholder {
+  color: #71839D;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 75px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #69A5FA;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.forgot {
+  display: block;
+  text-align: right;
+  margin-top: -8px;
+  margin-bottom: 22px;
+  color: #69A5FA;
+  text-decoration: none;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 15px;
+  background: #3978D5;
+  border: none;
+  border-radius: 9px;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background: #2B65B9;
+}
+
+.submit-btn:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+.message {
+  display: none;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.message.error {
+  display: block;
+  background: #48232B;
+  color: #FFB9C3;
+}
+
+.message.success {
+  display: block;
+  background: #173E3A;
+  color: #A2E8D1;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 27px;
+  color: #9AAAC0;
+  font-size: 13px;
+}
+
+.register-link a {
+  color: #69A5FA;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 25px;
+  color: #71839D;
+  font-size: 11px;
+}
+
+@media(max-width: 400px) {
+  .container {
+    padding: 30px 20px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="logo">
+    <div class="logo-mark">S</div>
+    <h2>SIMPLEX<span>PING</span></h2>
+    <p>Connect. Communicate. Belong.</p>
+  </div>
+
+  <h1>Welcome back!</h1>
+  <p class="subtitle">
+    Sign in to your SIMPLEXPING account and continue your conversations.
+  </p>
+
+  <div id="message" class="message" role="alert"></div>
+
+  <form id="loginForm">
+
+    <div class="form-group">
+      <label for="email">Email address</label>
+      <input
+        type="email"
+        id="email"
+        placeholder="Enter your email"
+        autocomplete="email"
+        required
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+
+      <div class="password-wrapper">
+        <input
+          type="password"
+          id="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button
+          type="button"
+          class="toggle-password"
+          id="togglePassword"
+        >Show</button>
+      </div>
+    </div>
+
+    <a class="forgot" id="forgotPassword">
+      Forgot password?
+    </a>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      Sign In
+    </button>
+
+  </form>
+
+  <div class="register-link">
+    Don't have an account?
+    <a href="register.html">Create account</a>
+  </div>
+
+  <div class="footer">
+    SIMPLEXPING · Connect with confidence.
+  </div>
+
+</div>
+
+<script type="module">
+import { auth } from "./firebase.js";
+
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+const form = document.getElementById("loginForm");
+const message = document.getElementById("message");
+const submitBtn = document.getElementById("submitBtn");
+const passwordInput = document.getElementById("password");
+
+function showMessage(text, type) {
+  message.textContent = text;
+  message.className = "message " + type;
+}
+
+// Show registration success message
+const params = new URLSearchParams(window.location.search);
+
+if (params.get("registered") === "1") {
+  showMessage(
+    "Your account was created successfully. Please sign in.",
+    "success"
+  );
+}
+
+// Show or hide password
+document.getElementById("togglePassword")
+.addEventListener("click", () => {
+
+  const isHidden = passwordInput.type === "password";
+
+  passwordInput.type = isHidden ? "text" : "password";
+
+  document.getElementById("togglePassword").textContent =
+    isHidden ? "Hide" : "Show";
+});
+
+// Login
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = passwordInput.value;
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Signing in...";
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+
+    showMessage("Login successful! Opening SIMPLEXPING...", "success");
+
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 1000);
+
+  } catch (error) {
+    console.error("Login error:", error);
+
+    let errorMessage = "Unable to sign in. Please try again.";
+
+    if (
+      error.code === "auth/invalid-credential" ||
+      error.code === "auth/wrong-password" ||
+      error.code === "auth/user-not-found"
+    ) {
+      errorMessage = "Incorrect email or password.";
+    } else if (error.code === "auth/invalid-email") {
+      errorMessage = "Please enter a valid email address.";
+    } else if (error.code === "auth/too-many-requests") {
+      errorMessage = "Too many attempts. Please try again later.";
+    } else if (error.code === "auth/network-request-failed") {
+      errorMessage = "Network error. Check your internet connection.";
+    } else if (error.code === "auth/user-disabled") {
+      errorMessage = "This account has been disabled.";
+    }
+
+    showMessage(errorMessage, "error");
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Sign In";
+  }
+});
+
+// Password reset
+document.getElementById("forgotPassword")
+.addEventListener("click", async () => {
+
+  const email = document.getElementById("email").value.trim();
+
+  if (!email) {
+    showMessage(
+      "Enter your email address first, then select Forgot password.",
+      "error"
+    );
+    return;
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+
+    showMessage(
+      "If an account exists for this email, a password reset link has been sent.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error("Password reset error:", error);
+
+    if (error.code === "auth/invalid-email") {
+      showMessage("Please enter a valid email address.", "error");
+    } else if (error.code === "auth/network-request-failed") {
+      showMessage("Network error. Please try again.", "error");
+    } else {
+      showMessage("Unable to send reset email. Please try again.", "error");
+    }
+  }
+});
+</script>
+
+</body>
+    </html>
+
