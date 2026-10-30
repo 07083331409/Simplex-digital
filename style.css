@@ -250,3 +250,185 @@ footer strong { color: #8270b5; letter-spacing: .5px; }
   .chat-tools .icon-btn:nth-child(2) { display: none; }
   .send-button { padding: 10px; }
                }
+
+/* =================================
+   SIMPLEXPING - MIDNIGHT NAVY THEME
+   No pink. No purple. Premium blue.
+================================= */
+
+:root {
+  --bg: #0B1424;
+  --surface: #111E32;
+  --surface-light: #172B49;
+  --sidebar: #0D192B;
+  --accent: #3978D5;
+  --accent-light: #5C99F0;
+  --ink: #EDF3FC;
+  --muted: #9AAAC0;
+  --line: #263750;
+}
+
+/* Main background */
+body {
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+}
+
+/* Main layout */
+.sidebar,
+.topbar,
+.upgrade-card {
+  background: var(--sidebar) !important;
+  color: var(--ink) !important;
+}
+
+/* Content panels */
+.chat-panel,
+.inbox-panel,
+.details-panel,
+.card,
+.modal {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+/* Headings and general text */
+h1, h2, h3, h4,
+.brand strong,
+.chat-contact,
+.inbox-person,
+.chat-person {
+  color: var(--ink) !important;
+}
+
+p,
+small,
+.muted,
+.main-nav a {
+  color: var(--muted) !important;
+}
+
+/* Brand */
+.brand-mark,
+.me.avatar {
+  background: linear-gradient(135deg, #244B7D, #3978D5) !important;
+  color: white !important;
+}
+
+.brand strong span,
+.footer strong {
+  color: var(--accent-light) !important;
+}
+
+/* Navigation */
+.main-nav a.active {
+  background: #1B3557 !important;
+  color: #8DBAFF !important;
+}
+
+.main-nav a:hover {
+  background: #172B49 !important;
+}
+
+/* Search and input fields */
+input,
+textarea,
+select {
+  background: #0D192B !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8293AA !important;
+}
+
+/* Selected conversations */
+.chat-person.selected,
+.inbox-person.selected {
+  background: #1B3557 !important;
+  border-color: #315D91 !important;
+}
+
+/* Buttons and filters */
+button,
+.new-chat,
+.send-button {
+  background: var(--accent) !important;
+  color: white !important;
+  border-color: var(--accent) !important;
+}
+
+button:hover,
+.new-chat:hover,
+.send-button:hover {
+  background: #2B65B9 !important;
+}
+
+/* Round action buttons */
+.round-action,
+.filter.active {
+  background: #1B3557 !important;
+  color: #8DBAFF !important;
+}
+
+/* Chat messages */
+.sent .bubble {
+  background: linear-gradient(135deg, #24518A, #3978D5) !important;
+  color: white !important;
+}
+
+.received .bubble {
+  background: #1B2B42 !important;
+  color: #EDF3FC !important;
+}
+
+/* Avatars: replace pink and purple */
+.avatar.rose {
+  background: #243E63 !important;
+  color: #A9C9F7 !important;
+}
+
+.avatar.blue {
+  background: #1B3659 !important;
+  color: #A7C9FF !important;
+}
+
+.avatar.purple {
+  background: #303D55 !important;
+  color: #C1D0E8 !important;
+}
+
+.avatar.green {
+  background: #173E3A !important;
+  color: #8DD8C3 !important;
+}
+
+/* Borders and separators */
+hr,
+.divider,
+.chat-header,
+.inbox-header,
+.detail-section {
+  border-color: var(--line) !important;
+}
+
+/* Status indicators */
+.status-pill {
+  background: #173E3A !important;
+  color: #8DD8C3 !important;
+}
+
+/* Hover effects */
+.detail-section button:hover {
+  background: #1B3557 !important;
+}
+
+/* Toast notification */
+.toast {
+  background: #172B49 !important;
+  color: white !important;
+  border: 1px solid var(--line) !important;
+}
