@@ -1,1 +1,407 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account | SIMPLEXPING</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #0B1424;
+  color: #EDF3FC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 25px 15px;
+}
+
+.container {
+  width: 100%;
+  max-width: 440px;
+  background: #111E32;
+  padding: 38px 30px;
+  border: 1px solid #263750;
+  border-radius: 18px;
+  box-shadow: 0 15px 45px rgba(0,0,0,.3);
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.logo-mark {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #244B7D, #3978D5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  font-weight: bold;
+  color: white;
+}
+
+.logo h2 {
+  font-size: 23px;
+  letter-spacing: 1px;
+}
+
+.logo h2 span {
+  color: #5C99F0;
+}
+
+.logo p {
+  color: #9AAAC0;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+h1 {
+  font-size: 25px;
+  margin-bottom: 9px;
+}
+
+.subtitle {
+  color: #9AAAC0;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+label {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #DCE6F5;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #31435E;
+  border-radius: 9px;
+  outline: none;
+  background: #0D192B;
+  color: white;
+  font-size: 14px;
+}
+
+input:focus {
+  border-color: #3978D5;
+  box-shadow: 0 0 0 3px rgba(57,120,213,.12);
+}
+
+input::placeholder {
+  color: #71839D;
+}
+
+.password-note {
+  font-size: 11px;
+  color: #8293AA;
+  margin-top: 7px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 15px;
+  background: #3978D5;
+  border: none;
+  border-radius: 9px;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.submit-btn:hover {
+  background: #2B65B9;
+}
+
+.submit-btn:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+.message {
+  display: none;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 17px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.message.error {
+  display: block;
+  background: #48232B;
+  color: #FFB9C3;
+}
+
+.message.success {
+  display: block;
+  background: #173E3A;
+  color: #A2E8D1;
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 13px;
+  color: #9AAAC0;
+}
+
+.login-link a {
+  color: #69A5FA;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+.terms {
+  text-align: center;
+  color: #71839D;
+  font-size: 11px;
+  margin-top: 25px;
+  line-height: 1.6;
+}
+
+@media(max-width: 400px) {
+  .container {
+    padding: 30px 20px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="logo">
+    <div class="logo-mark">S</div>
+    <h2>SIMPLEX<span>PING</span></h2>
+    <p>Connect. Communicate. Belong.</p>
+  </div>
+
+  <h1>Create your account</h1>
+  <p class="subtitle">
+    Join SIMPLEXPING and start connecting with people.
+  </p>
+
+  <div id="message" class="message" role="alert"></div>
+
+  <form id="registerForm">
+
+    <div class="form-group">
+      <label for="fullName">Full name</label>
+      <input
+        type="text"
+        id="fullName"
+        placeholder="Enter your full name"
+        autocomplete="name"
+        required
+        maxlength="80"
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email address</label>
+      <input
+        type="email"
+        id="email"
+        placeholder="example@email.com"
+        autocomplete="email"
+        required
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="password">Create password</label>
+      <input
+        type="password"
+        id="password"
+        placeholder="Create a password"
+        autocomplete="new-password"
+        minlength="8"
+        required
+      >
+      <p class="password-note">
+        Use at least 8 characters.
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label for="confirmPassword">Confirm password</label>
+      <input
+        type="password"
+        id="confirmPassword"
+        placeholder="Enter password again"
+        autocomplete="new-password"
+        required
+      >
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      Create Account
+    </button>
+
+  </form>
+
+  <div class="login-link">
+    Already have an account?
+    <a href="login.html">Log in</a>
+  </div>
+
+  <div class="terms">
+    By creating an account, you agree to use SIMPLEXPING responsibly.
+  </div>
+
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+
+import {
+  createUserWithEmailAndPassword,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import {
+  doc,
+  setDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const form = document.getElementById("registerForm");
+const message = document.getElementById("message");
+const submitBtn = document.getElementById("submitBtn");
+
+function showMessage(text, type) {
+  message.textContent = text;
+  message.className = "message " + type;
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const fullName = document.getElementById("fullName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+
+  if (fullName.length < 2) {
+    showMessage("Please enter your full name.", "error");
+    return;
+  }
+
+  if (password.length < 8) {
+    showMessage("Your password must contain at least 8 characters.", "error");
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    showMessage("Your passwords do not match.", "error");
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Creating account...";
+
+  try {
+    const credential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    const user = credential.user;
+
+    await updateProfile(user, {
+      displayName: fullName
+    });
+
+    try {
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        fullName: fullName,
+        email: user.email,
+        photoURL: null,
+        status: "offline",
+        createdAt: serverTimestamp()
+      });
+    } catch (profileError) {
+      console.error("Profile saving failed:", profileError);
+
+      showMessage(
+        "Your account was created, but your profile could not be saved. Please contact support.",
+        "error"
+      );
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Create Account";
+      return;
+    }
+
+    showMessage(
+      "Account created successfully! Taking you to login...",
+      "success"
+    );
+
+    form.reset();
+
+    setTimeout(() => {
+      window.location.href = "login.html?registered=1";
+    }, 1800);
+
+  } catch (error) {
+    console.error("Registration error:", error);
+
+    let errorMessage = "Something went wrong. Please try again.";
+
+    if (error.code === "auth/email-already-in-use") {
+      errorMessage = "This email address already has an account.";
+    } else if (error.code === "auth/invalid-email") {
+      errorMessage = "Please enter a valid email address.";
+    } else if (error.code === "auth/weak-password") {
+      errorMessage = "Please choose a stronger password.";
+    } else if (error.code === "auth/network-request-failed") {
+      errorMessage = "Network error. Please check your internet connection.";
+    } else if (error.code === "auth/operation-not-allowed") {
+      errorMessage = "Email and password registration is not enabled in Firebase.";
+    }
+
+    showMessage(errorMessage, "error");
+
+  } finally {
+    if (submitBtn.textContent !== "Create Account") {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Create Account";
+    }
+  }
+});
+</script>
+
+</body>
+        </html>
+
