@@ -4,74 +4,213 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#ec4899">
-  <meta name="description" content="SIMPLEXPING — Connect, chat and share moments.">
-  <title>SIMPLEXPING | Connect Freely</title>
+  <meta name="theme-color" content="#171525">
+  <title>SIMPLEXPING — Messages that matter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <header class="navbar">
-    <a href="#" class="logo">Simplex<span>Ping.</span></a>
-    <a href="#login" class="nav-login">Sign in</a>
-  </header>
+<div class="app">
 
-  <main class="hero">
-    <div class="hero-content">
-      <div class="eyebrow">
-        <span class="online-dot"></span>
-        YOUR WORLD. YOUR PEOPLE.
-      </div>
-
-      <h1>Conversations that bring us <span>closer.</span></h1>
-
-      <p>
-        Connect with friends, share your moments and enjoy
-        meaningful conversations — all in one beautiful place.
-      </p>
-
-      <div class="hero-actions">
-        <a href="#register" class="primary-btn">Get started <span>→</span></a>
-        <a href="#login" class="secondary-btn">I have an account</a>
-      </div>
-
-      <div class="hero-note">
-        <span>✦</span> Private chats. Group conversations. Real connections.
-      </div>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">S<span>✦</span></div>
+      <div><strong>SIMPLEX<span>PING</span></strong><small>YOUR WORLD. CONNECTED.</small></div>
     </div>
 
-    <div class="preview">
-      <div class="chat-card">
-        <div class="chat-header">
-          <div class="avatar pink">A</div>
-          <div>
-            <strong>Alex Morgan</strong>
-            <small>Online now</small>
+    <button class="new-chat" id="newChat">＋ <span>New message</span></button>
+
+    <div class="side-label">WORKSPACE</div>
+    <nav class="main-nav">
+      <a class="active" href="#"><span>▣</span> Messages <b id="messageCount">4</b></a>
+      <a href="#" id="peopleLink"><span>♙</span> People</a>
+      <a href="#" id="savedLink"><span>☆</span> Saved messages</a>
+      <a href="#" id="archiveLink"><span>▤</span> Archive</a>
+    </nav>
+
+    <div class="side-label conversations-label">YOUR CONVERSATIONS <span>•••</span></div>
+    <div class="chat-list" id="chatList">
+      <button class="chat-person selected" data-name="Amara Okafor" data-initial="A" data-color="rose">
+        <span class="avatar rose">A<i></i></span>
+        <span class="person-info"><strong>Amara Okafor</strong><small>Are we still meeting today?</small></span>
+        <span class="chat-meta"><small>10:42</small><b>2</b></span>
+      </button>
+      <button class="chat-person" data-name="Daniel James" data-initial="D" data-color="blue">
+        <span class="avatar blue">D<i></i></span>
+        <span class="person-info"><strong>Daniel James</strong><small>Sent you a photo</small></span>
+        <span class="chat-meta"><small>09:18</small></span>
+      </button>
+      <button class="chat-person" data-name="Sophia Williams" data-initial="S" data-color="purple">
+        <span class="avatar purple">S<i></i></span>
+        <span class="person-info"><strong>Sophia Williams</strong><small>Thank you so much!</small></span>
+        <span class="chat-meta"><small>Yesterday</small></span>
+      </button>
+      <button class="chat-person" data-name="Michael David" data-initial="M" data-color="green">
+        <span class="avatar green">M<i></i></span>
+        <span class="person-info"><strong>Michael David</strong><small>Let's talk later.</small></span>
+        <span class="chat-meta"><small>Monday</small></span>
+      </button>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="upgrade-card"><span>✧</span><strong>Make every connection count.</strong><small>Your space for meaningful conversations.</small></div>
+      <button class="profile-button"><span class="avatar me">J</span><span><strong>Jeremiah</strong><small>My profile</small></span><span class="more">•••</span></button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="mobile-brand"><div class="brand-mark">S<span>✦</span></div><strong>SIMPLEXPING</strong></div>
+      <div class="breadcrumb">Workspace <span>/</span> <strong>Messages</strong></div>
+      <div class="top-actions">
+        <button class="icon-btn" title="Help">?</button>
+        <button class="icon-btn notification" title="Notifications">♧<i></i></button>
+        <span class="top-divider"></span>
+        <span class="avatar me small">J</span>
+      </div>
+    </header>
+
+    <section class="content">
+      <div class="welcome-row">
+        <div><p class="eyebrow">YOUR PERSONAL SPACE</p><h1>Good evening, Jeremiah <span>✦</span></h1><p class="subheading">Stay close to the people who matter.</p></div>
+        <div class="date-pill">✧ &nbsp; Your conversations, all in one place</div>
+      </div>
+
+      <div class="messaging-layout">
+        <section class="inbox panel">
+          <div class="inbox-heading"><div><h2>Messages</h2><p>Your recent conversations</p></div><button class="round-action" id="newChat2">＋</button></div>
+          <div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search conversations..."><kbd>⌘ K</kbd></div>
+          <div class="filter-row"><button class="filter active">All <span>4</span></button><button class="filter">Unread</button><button class="filter">Groups</button></div>
+          <div class="inbox-list" id="inboxList">
+            <button class="inbox-person selected" data-name="Amara Okafor" data-initial="A" data-color="rose">
+              <span class="avatar rose">A<i></i></span><span class="person-info"><strong>Amara Okafor</strong><small>Are we still meeting today?</small></span><span class="chat-meta"><small>10:42</small><b>2</b></span>
+            </button>
+            <button class="inbox-person" data-name="Daniel James" data-initial="D" data-color="blue">
+              <span class="avatar blue">D<i></i></span><span class="person-info"><strong>Daniel James</strong><small>Sent you a photo</small></span><span class="chat-meta"><small>09:18</small></span>
+            </button>
+            <button class="inbox-person" data-name="Sophia Williams" data-initial="S" data-color="purple">
+              <span class="avatar purple">S<i></i></span><span class="person-info"><strong>Sophia Williams</strong><small>Thank you so much!</small></span><span class="chat-meta"><small>Yesterday</small></span>
+            </button>
+            <button class="inbox-person" data-name="Michael David" data-initial="M" data-color="green">
+              <span class="avatar green">M<i></i></span><span class="person-info"><strong>Michael David</strong><small>Let's talk later.</small></span><span class="chat-meta"><small>Monday</small></span>
+            </button>
           </div>
-          <span class="more">•••</span>
-        </div>
+          <div class="inbox-footer"><span class="online-dot"></span> You're all caught up</div>
+        </section>
 
-        <div class="messages">
-          <div class="date-label">TODAY</div>
-          <div class="bubble received">Hey! How are you doing? 😊</div>
-          <div class="bubble sent">I'm great! So happy to hear from you.</div>
-          <div class="bubble received">We should catch up soon! 💗</div>
-          <div class="bubble sent">Absolutely! Can't wait. ✨</div>
-        </div>
+        <section class="chat-panel panel">
+          <div class="chat-header">
+            <div class="chat-contact"><span class="avatar rose large" id="headerAvatar">A<i></i></span><span><strong id="headerName">Amara Okafor</strong><small><i class="online-dot"></i> Active now</small></span></div>
+            <div class="chat-tools"><button class="icon-btn" title="Search">⌕</button><button class="icon-btn" title="Call">♧</button><button class="icon-btn" title="More">•••</button></div>
+          </div>
 
-        <div class="message-input">
-          <span>Write a message...</span>
-          <span class="send-icon">➤</span>
-        </div>
+          <div class="chat-date"><span></span><small>TODAY, OCTOBER 30</small><span></span></div>
+          <div class="messages" id="messages">
+            <div class="message received"><span class="avatar rose tiny">A</span><div><div class="bubble">Hey Jeremiah! How are you doing today? 😊</div><small>10:35 AM</small></div></div>
+            <div class="message sent"><div><div class="bubble">I'm doing great, Amara. Hope you're having a lovely day!</div><small>10:38 AM <span class="read">✓✓</span></small></div></div>
+            <div class="message received"><span class="avatar rose tiny">A</span><div><div class="bubble">Absolutely! I wanted to discuss the project with you.</div><small>10:40 AM</small></div></div>
+            <div class="message received"><span class="avatar rose tiny">A</span><div><div class="bubble">Are we still meeting today?</div><small>10:42 AM</small></div></div>
+          </div>
+
+          <div class="typing" id="typing"></div>
+          <form class="composer" id="messageForm">
+            <button type="button" class="attach" title="Attach file">＋</button>
+            <input id="messageInput" type="text" placeholder="Write a message..." autocomplete="off">
+            <button type="button" class="emoji" title="Emoji">☺</button>
+            <button class="send-button" type="submit">Send <span>➤</span></button>
+          </form>
+          <div class="composer-note">Press <kbd>Enter</kbd> to send your message</div>
+        </section>
+
+        <aside class="details panel">
+          <div class="details-top"><strong>Contact details</strong><button class="icon-btn">•••</button></div>
+          <div class="contact-profile"><span class="avatar rose profile-avatar">A<i></i></span><h3 id="detailName">Amara Okafor</h3><p>amaraa@example.com</p><span class="status-pill"><i></i> Active now</span></div>
+          <div class="detail-divider"></div>
+          <div class="detail-section"><strong>About</strong><p>Making meaningful connections, one conversation at a time.</p></div>
+          <div class="detail-divider"></div>
+          <div class="detail-section"><strong>Quick actions</strong><button>♙ &nbsp; View profile</button><button>☆ &nbsp; Add to favourites</button><button>⌕ &nbsp; Search messages</button></div>
+          <div class="detail-divider"></div>
+          <div class="detail-section"><strong>Privacy</strong><p class="privacy-note">🔒 &nbsp; Your conversations deserve privacy.</p></div>
+        </aside>
       </div>
-
-      <div class="floating-heart">♥</div>
-      <div class="floating-star">✦</div>
-    </div>
+      <footer>© 2026 <strong>SIMPLEXPING</strong>. Bringing people closer.</footer>
+    </section>
   </main>
+</div>
 
-  <footer>
-    © 2026 SIMPLEXPING. Made for meaningful connections.
-  </footer>
+<div class="toast" id="toast">This feature will be available soon.</div>
+<script>
+const toast = document.getElementById("toast");
+function notify(text) {
+  toast.textContent = text;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2400);
+}
+
+document.querySelectorAll(".chat-person, .inbox-person").forEach(person => {
+  person.addEventListener("click", () => {
+    const name = person.dataset.name;
+    const initial = person.dataset.initial;
+    const color = person.dataset.color;
+    document.querySelectorAll(".chat-person, .inbox-person").forEach(p => p.classList.toggle("selected", p.dataset.name === name));
+    document.getElementById("headerName").textContent = name;
+    document.getElementById("detailName").textContent = name;
+    const avatar = document.getElementById("headerAvatar");
+    avatar.className = "avatar " + color + " large";
+    avatar.textContent = initial;
+    document.getElementById("messages").innerHTML = `
+      <div class="empty-chat"><span class="avatar ${color} large">${initial}</span><h3>${name}</h3><p>This is the beginning of your conversation.</p></div>`;
+    document.getElementById("messageCount").textContent = "4";
+    document.querySelector(".chat-date small").textContent = "YOUR CONVERSATION";
+    if (window.innerWidth <= 760) document.querySelector(".chat-panel").scrollIntoView({behavior:"smooth"});
+  });
+});
+
+document.getElementById("messageForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const input = document.getElementById("messageInput");
+  const value = input.value.trim();
+  if (!value) return;
+  const message = document.createElement("div");
+  message.className = "message sent";
+  const content = document.createElement("div");
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.textContent = value;
+  const time = document.createElement("small");
+  time.textContent = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  content.append(bubble, time);
+  message.append(content);
+  document.getElementById("messages").append(message);
+  input.value = "";
+  document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+});
+
+document.getElementById("searchInput").addEventListener("input", e => {
+  const query = e.target.value.toLowerCase();
+  document.querySelectorAll(".inbox-person").forEach(person => {
+    person.style.display = person.textContent.toLowerCase().includes(query) ? "flex" : "none";
+  });
+});
+
+["newChat","newChat2","peopleLink","savedLink","archiveLink"].forEach(id => {
+  document.getElementById(id).addEventListener("click", e => {
+    e.preventDefault();
+    notify("This feature will be connected soon.");
+  });
+});
+document.querySelectorAll(".filter").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".filter").forEach(b => b.classList.remove("active"));
+    button.classList.add("active");
+    notify(button.textContent.trim() + " conversations");
+  });
+});
+document.querySelectorAll(".chat-tools button, .details-section button, .attach, .emoji").forEach(button => {
+  button.addEventListener("click", () => notify("This feature will be connected soon."));
+});
+</script>
 </body>
-</html>
+                                                                                                                                                         </html>
+                                                                                                                                                         
