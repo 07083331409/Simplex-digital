@@ -1,1 +1,418 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMPLEXPING | Chat</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #091426;
+      color: #f1f5fb;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 850px;
+      height: 100vh;
+      max-height: 900px;
+      background: #101f35;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #203651;
+    }
+
+    .chat-header {
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      background: #142640;
+      border-bottom: 1px solid #263b56;
+    }
+
+    .back-btn {
+      color: #a9c6ec;
+      text-decoration: none;
+      font-size: 23px;
+    }
+
+    .avatar {
+      width: 43px;
+      height: 43px;
+      border-radius: 50%;
+      background: #28518a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .contact-info h3 {
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+
+    .contact-info p {
+      color: #91a9c6;
+      font-size: 12px;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #8499b5;
+      margin: auto;
+      font-size: 14px;
+    }
+
+    .message {
+      max-width: 78%;
+      padding: 12px 15px;
+      border-radius: 15px;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .sent {
+      align-self: flex-end;
+      background: #285b9b;
+      border-bottom-right-radius: 4px;
+    }
+
+    .received {
+      align-self: flex-start;
+      background: #20344f;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-time {
+      display: block;
+      font-size: 10px;
+      color: #c1d0e4;
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    .message-form {
+      padding: 15px;
+      display: flex;
+      gap: 10px;
+      background: #142640;
+      border-top: 1px solid #263b56;
+    }
+
+    .message-form input {
+      flex: 1;
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid #304965;
+      border-radius: 25px;
+      outline: none;
+      background: #0b1a2e;
+      color: white;
+      font-size: 14px;
+    }
+
+    .message-form button {
+      border: none;
+      background: #3978c7;
+      color: white;
+      padding: 0 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .message-form button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #status {
+      padding: 8px 15px;
+      color: #a9c6ec;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (min-width: 600px) {
+      .chat-container {
+        height: 90vh;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="chat-container">
+
+    <header class="chat-header">
+      <a href="contacts.html" class="back-btn">‹</a>
+
+      <div class="avatar" id="avatar">?</div>
+
+      <div class="contact-info">
+        <h3 id="contactName">Loading...</h3>
+        <p id="contactStatus">SIMPLEXPING</p>
+      </div>
+    </header>
+
+    <div id="status">Connecting to chat...</div>
+
+    <section class="messages" id="messages">
+      <p class="empty-message">Your conversation will appear here.</p>
+    </section>
+
+    <form class="message-form" id="messageForm">
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Write a message..."
+        maxlength="2000"
+        autocomplete="off"
+        required
+      >
+
+      <button type="submit" id="sendButton">Send</button>
+    </form>
+
+  </main>
+
+  <script type="module">
+    import { auth, db } from "./firebase.js";
+
+    import {
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+    import {
+      doc,
+      getDoc,
+      setDoc,
+      collection,
+      addDoc,
+      query,
+      orderBy,
+      limit,
+      onSnapshot,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+    const messagesBox = document.getElementById("messages");
+    const messageForm = document.getElementById("messageForm");
+    const messageInput = document.getElementById("messageInput");
+    const sendButton = document.getElementById("sendButton");
+    const statusText = document.getElementById("status");
+
+    const contactName = document.getElementById("contactName");
+    const contactStatus = document.getElementById("contactStatus");
+    const avatar = document.getElementById("avatar");
+
+    const otherUserId = new URLSearchParams(
+      window.location.search
+    ).get("with");
+
+    let currentUser = null;
+    let conversationId = null;
+    let stopMessagesListener = null;
+
+    function showStatus(message) {
+      statusText.textContent = message;
+    }
+
+    function showMessage(text, senderId, timestamp) {
+      const message = document.createElement("div");
+
+      message.className = "message " +
+        (senderId === currentUser.uid ? "sent" : "received");
+
+      const content = document.createElement("div");
+      content.textContent = text;
+
+      const time = document.createElement("span");
+      time.className = "message-time";
+
+      if (timestamp && timestamp.toDate) {
+        time.textContent = timestamp.toDate().toLocaleTimeString(
+          [],
+          { hour: "2-digit", minute: "2-digit" }
+        );
+      } else {
+        time.textContent = "Just now";
+      }
+
+      message.append(content, time);
+      messagesBox.appendChild(message);
+    }
+
+    async function startChat() {
+      if (!otherUserId || otherUserId === currentUser.uid) {
+        showStatus("Invalid contact. Return to your contacts.");
+        messageForm.hidden = true;
+        return;
+      }
+
+      try {
+        const userRef = doc(db, "users", otherUserId);
+        const userSnapshot = await getDoc(userRef);
+
+        if (!userSnapshot.exists()) {
+          showStatus("This user could not be found.");
+          messageForm.hidden = true;
+          return;
+        }
+
+        const otherUser = userSnapshot.data();
+
+        const name = otherUser.fullName || otherUser.username || "User";
+
+        contactName.textContent = name;
+        avatar.textContent = name.charAt(0).toUpperCase();
+        contactStatus.textContent = "SIMPLEXPING member";
+
+        const members = [currentUser.uid, otherUserId].sort();
+
+        conversationId = members.join("_");
+
+        const conversationRef = doc(
+          db,
+          "conversations",
+          conversationId
+        );
+
+        await setDoc(conversationRef, {
+          participants: members,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        const messagesQuery = query(
+          collection(db, "conversations", conversationId, "messages"),
+          orderBy("createdAt", "asc"),
+          limit(100)
+        );
+
+        stopMessagesListener = onSnapshot(
+          messagesQuery,
+          (snapshot) => {
+            messagesBox.replaceChildren();
+
+            if (snapshot.empty) {
+              const empty = document.createElement("p");
+              empty.className = "empty-message";
+              empty.textContent = "No messages yet. Say hello!";
+              messagesBox.appendChild(empty);
+              return;
+            }
+
+            snapshot.forEach((messageDoc) => {
+              const data = messageDoc.data();
+
+              showMessage(
+                data.text,
+                data.senderId,
+                data.createdAt
+              );
+            });
+
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+          },
+          (error) => {
+            console.error(error);
+            showStatus("Unable to load messages. Check Firestore rules.");
+          }
+        );
+
+        showStatus("Chat connected.");
+
+      } catch (error) {
+        console.error(error);
+        showStatus("Could not open chat: " + error.message);
+      }
+    }
+
+    messageForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const text = messageInput.value.trim();
+
+      if (!text || !conversationId) return;
+
+      sendButton.disabled = true;
+
+      try {
+        const messagesRef = collection(
+          db,
+          "conversations",
+          conversationId,
+          "messages"
+        );
+
+        await addDoc(messagesRef, {
+          text: text,
+          senderId: currentUser.uid,
+          createdAt: serverTimestamp()
+        });
+
+        await setDoc(
+          doc(db, "conversations", conversationId),
+          { updatedAt: serverTimestamp() },
+          { merge: true }
+        );
+
+        messageInput.value = "";
+        messageInput.focus();
+
+      } catch (error) {
+        console.error(error);
+        showStatus("Message not sent: " + error.message);
+      } finally {
+        sendButton.disabled = false;
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.replace("login.html");
+        return;
+      }
+
+      currentUser = user;
+      startChat();
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (stopMessagesListener) {
+        stopMessagesListener();
+      }
+    });
+  </script>
+
+</body>
+  </html>
+
