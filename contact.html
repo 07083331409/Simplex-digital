@@ -1,1 +1,445 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contacts | SIMPLEXPING</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #0B1424;
+  color: #EDF3FC;
+  padding: 20px;
+}
+
+header {
+  max-width: 950px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0 30px;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.brand span {
+  color: #5C99F0;
+}
+
+header a {
+  color: #A8C9F7;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.container {
+  max-width: 950px;
+  margin: auto;
+}
+
+.page-heading {
+  margin-bottom: 25px;
+}
+
+.page-heading h1 {
+  font-size: 28px;
+  margin-bottom: 9px;
+}
+
+.page-heading p {
+  color: #9AAAC0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.search-box {
+  margin-bottom: 25px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #263750;
+  border-radius: 10px;
+  background: #111E32;
+  color: white;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-box input:focus {
+  border-color: #3978D5;
+}
+
+.search-box input::placeholder {
+  color: #8293AA;
+}
+
+.contacts-card {
+  background: #111E32;
+  border: 1px solid #263750;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.contacts-heading {
+  padding: 20px;
+  border-bottom: 1px solid #263750;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.contacts-heading h2 {
+  font-size: 17px;
+}
+
+.count {
+  color: #9AAAC0;
+  font-size: 12px;
+}
+
+.contact-list {
+  padding: 5px 20px;
+}
+
+.contact {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 17px 0;
+  border-bottom: 1px solid #263750;
+}
+
+.contact:last-child {
+  border-bottom: none;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #244B7D, #3978D5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  font-weight: bold;
+  color: white;
+}
+
+.contact-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.contact-info h3 {
+  font-size: 14px;
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+
+.contact-info p {
+  color: #9AAAC0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.contact button {
+  background: #3978D5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 15px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.contact button:hover {
+  background: #2B65B9;
+}
+
+.message {
+  display: none;
+  padding: 13px;
+  margin: 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.message.error {
+  display: block;
+  background: #48232B;
+  color: #FFB9C3;
+}
+
+.message.info {
+  display: block;
+  background: #1B3557;
+  color: #A8C9F7;
+}
+
+.empty {
+  text-align: center;
+  padding: 35px 15px;
+  color: #9AAAC0;
+  font-size: 13px;
+}
+
+@media(max-width: 500px) {
+  body {
+    padding: 15px;
+  }
+
+  .contact-list {
+    padding: 5px 14px;
+  }
+
+  .contact {
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .contact button {
+    padding: 10px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">SIMPLEX<span>PING</span></div>
+  <a href="index.html">← Dashboard</a>
+</header>
+
+<main class="container">
+
+  <div class="page-heading">
+    <h1>Discover People</h1>
+    <p>Find people and connect with them on SIMPLEXPING.</p>
+  </div>
+
+  <div class="search-box">
+    <input
+      type="search"
+      id="searchInput"
+      placeholder="Search by name or username..."
+      autocomplete="off"
+    >
+  </div>
+
+  <section class="contacts-card">
+
+    <div class="contacts-heading">
+      <h2>People on SIMPLEXPING</h2>
+      <span class="count" id="count">Loading...</span>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div id="contactList" class="contact-list">
+      <div class="empty">Loading people...</div>
+    </div>
+
+  </section>
+
+</main>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import {
+  collection,
+  getDocs,
+  query,
+  limit
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const contactList = document.getElementById("contactList");
+const searchInput = document.getElementById("searchInput");
+const count = document.getElementById("count");
+const message = document.getElementById("message");
+
+let currentUser = null;
+let allUsers = [];
+
+function showMessage(text, type = "info") {
+  message.textContent = text;
+  message.className = "message " + type;
+}
+
+function renderUsers(users) {
+
+  contactList.replaceChildren();
+
+  count.textContent = users.length + " people";
+
+  if (users.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No people found.";
+    contactList.appendChild(empty);
+    return;
+  }
+
+  users.forEach(user => {
+
+    const name = user.fullName || user.displayName || "SIMPLEXPING User";
+
+    const username = user.username
+      ? "@" + user.username
+      : "SIMPLEXPING member";
+
+    const card = document.createElement("div");
+    card.className = "contact";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = name.charAt(0).toUpperCase();
+
+    const info = document.createElement("div");
+    info.className = "contact-info";
+
+    const heading = document.createElement("h3");
+    heading.textContent = name;
+
+    const usernameText = document.createElement("p");
+    usernameText.textContent = username;
+
+    info.appendChild(heading);
+    info.appendChild(usernameText);
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Message";
+
+    button.addEventListener("click", () => {
+
+      showMessage(
+        "Messaging will be connected in our next feature. This person is " +
+        name + "."
+      );
+
+    });
+
+    card.appendChild(avatar);
+    card.appendChild(info);
+    card.appendChild(button);
+
+    contactList.appendChild(card);
+
+  });
+}
+
+function filterUsers() {
+
+  const search = searchInput.value.trim().toLowerCase();
+
+  const filtered = allUsers.filter(user => {
+
+    const name = (user.fullName || user.displayName || "").toLowerCase();
+
+    const username = (user.username || "").toLowerCase();
+
+    return name.includes(search) || username.includes(search);
+
+  });
+
+  renderUsers(filtered);
+}
+
+async function loadUsers() {
+
+  contactList.textContent = "Loading people...";
+
+  try {
+
+    const usersQuery = query(
+      collection(db, "users"),
+      limit(100)
+    );
+
+    const snapshot = await getDocs(usersQuery);
+
+    allUsers = [];
+
+    snapshot.forEach(document => {
+
+      const user = document.data();
+
+      // Never display the current user in their own contacts list.
+      if (document.id !== currentUser.uid) {
+
+        allUsers.push({
+          uid: document.id,
+          ...user
+        });
+
+      }
+
+    });
+
+    filterUsers();
+
+  } catch (error) {
+
+    console.error("Contacts loading error:", error);
+
+    contactList.textContent = "";
+
+    showMessage(
+      "Unable to load people. Check your Firestore permissions and internet connection.",
+      "error"
+    );
+
+    count.textContent = "Unavailable";
+
+  }
+}
+
+onAuthStateChanged(auth, async user => {
+
+  if (!user) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  currentUser = user;
+
+  await loadUsers();
+
+});
+
+searchInput.addEventListener("input", filterUsers);
+</script>
+
+</body>
+  </html>
+
