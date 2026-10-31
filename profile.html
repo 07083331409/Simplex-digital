@@ -1,1 +1,500 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile | SIMPLEXPING</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #0B1424;
+  color: #EDF3FC;
+  padding: 20px;
+}
+
+header {
+  max-width: 900px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 0 25px;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.brand span {
+  color: #5C99F0;
+}
+
+header a {
+  color: #A8C9F7;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.container {
+  max-width: 900px;
+  margin: 20px auto;
+}
+
+.page-title {
+  margin-bottom: 25px;
+}
+
+.page-title h1 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.page-title p {
+  color: #9AAAC0;
+  font-size: 14px;
+}
+
+.profile-card {
+  background: #111E32;
+  border: 1px solid #263750;
+  border-radius: 18px;
+  padding: 30px;
+}
+
+.profile-top {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid #263750;
+  margin-bottom: 25px;
+}
+
+.avatar {
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #244B7D, #3978D5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 32px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.profile-info h2 {
+  font-size: 21px;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+
+.profile-info p {
+  color: #9AAAC0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.online-status {
+  display: inline-block;
+  margin-top: 10px;
+  color: #8DD8C3;
+  font-size: 12px;
+}
+
+.section-title {
+  font-size: 17px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #31435E;
+  border-radius: 9px;
+  background: #0D192B;
+  color: white;
+  outline: none;
+  font-size: 14px;
+}
+
+input:focus {
+  border-color: #3978D5;
+}
+
+input:disabled {
+  opacity: .7;
+}
+
+.help {
+  color: #8293AA;
+  font-size: 11px;
+  margin-top: 7px;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+button {
+  border: none;
+  border-radius: 9px;
+  padding: 13px 20px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.save-btn {
+  background: #3978D5;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #2B65B9;
+}
+
+.logout-btn {
+  background: #24344B;
+  color: #DCE6F5;
+}
+
+.logout-btn:hover {
+  background: #30445F;
+}
+
+button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.message {
+  display: none;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.message.error {
+  display: block;
+  background: #48232B;
+  color: #FFB9C3;
+}
+
+.message.success {
+  display: block;
+  background: #173E3A;
+  color: #A2E8D1;
+}
+
+@media(max-width: 500px) {
+  body {
+    padding: 15px;
+  }
+
+  .profile-card {
+    padding: 20px;
+  }
+
+  .profile-top {
+    align-items: flex-start;
+  }
+
+  .avatar {
+    width: 65px;
+    height: 65px;
+    font-size: 25px;
+  }
+
+  .profile-info h2 {
+    font-size: 17px;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">SIMPLEX<span>PING</span></div>
+  <a href="index.html">← Back to dashboard</a>
+</header>
+
+<main class="container">
+
+  <div class="page-title">
+    <h1>My Profile</h1>
+    <p>Manage your SIMPLEXPING account information.</p>
+  </div>
+
+  <section class="profile-card">
+
+    <div class="profile-top">
+      <div class="avatar" id="avatar">S</div>
+
+      <div class="profile-info">
+        <h2 id="displayName">Loading profile...</h2>
+        <p id="displayEmail"></p>
+        <span class="online-status">● Account active</span>
+      </div>
+    </div>
+
+    <h3 class="section-title">Personal information</h3>
+
+    <div id="message" class="message" role="alert"></div>
+
+    <form id="profileForm">
+
+      <div class="form-group">
+        <label for="fullName">Full name</label>
+        <input
+          type="text"
+          id="fullName"
+          maxlength="80"
+          required
+          placeholder="Enter your full name"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          maxlength="20"
+          minlength="3"
+          placeholder="Choose a username"
+          required
+        >
+        <p class="help">
+          Use 3–20 letters, numbers, or underscores.
+          Usernames must be unique.
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input
+          type="email"
+          id="email"
+          disabled
+        >
+        <p class="help">
+          Your email is managed by Firebase Authentication.
+        </p>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="save-btn" id="saveBtn">
+          Save Changes
+        </button>
+
+        <button type="button" class="logout-btn" id="logoutBtn">
+          Log Out
+        </button>
+      </div>
+
+    </form>
+
+  </section>
+
+</main>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+
+import {
+  onAuthStateChanged,
+  updateProfile,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const form = document.getElementById("profileForm");
+const message = document.getElementById("message");
+const saveBtn = document.getElementById("saveBtn");
+
+let currentUser = null;
+let originalUsername = "";
+
+function showMessage(text, type) {
+  message.textContent = text;
+  message.className = "message " + type;
+}
+
+function updateAvatar(name) {
+  const firstLetter = name.trim().charAt(0).toUpperCase() || "S";
+  document.getElementById("avatar").textContent = firstLetter;
+}
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  currentUser = user;
+
+  document.getElementById("displayEmail").textContent = user.email || "";
+  document.getElementById("email").value = user.email || "";
+
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const snapshot = await getDoc(userRef);
+
+    const profile = snapshot.exists() ? snapshot.data() : {};
+
+    const name = profile.fullName || user.displayName || "";
+
+    document.getElementById("fullName").value = name;
+    document.getElementById("username").value = profile.username || "";
+
+    document.getElementById("displayName").textContent =
+      name || "SIMPLEXPING User";
+
+    originalUsername = profile.username || "";
+
+    updateAvatar(name);
+
+  } catch (error) {
+    console.error("Profile loading error:", error);
+
+    showMessage(
+      "Unable to load profile information. Please refresh the page.",
+      "error"
+    );
+  }
+});
+
+form.addEventListener("submit", async (event) => {
+
+  event.preventDefault();
+
+  if (!currentUser) {
+    showMessage("Please sign in first.", "error");
+    return;
+  }
+
+  const fullName = document.getElementById("fullName").value.trim();
+
+  const username = document.getElementById("username")
+    .value.trim()
+    .toLowerCase();
+
+  if (fullName.length < 2) {
+    showMessage("Please enter your full name.", "error");
+    return;
+  }
+
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+    showMessage(
+      "Username must contain 3–20 letters, numbers, or underscores.",
+      "error"
+    );
+    return;
+  }
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = "Saving...";
+
+  try {
+
+    const userRef = doc(db, "users", currentUser.uid);
+
+    // Save basic profile information.
+    // Username uniqueness will be implemented separately.
+    await setDoc(userRef, {
+      uid: currentUser.uid,
+      fullName: fullName,
+      username: username,
+      email: currentUser.email,
+      updatedAt: serverTimestamp()
+    }, {
+      merge: true
+    });
+
+    await updateProfile(currentUser, {
+      displayName: fullName
+    });
+
+    originalUsername = username;
+
+    document.getElementById("displayName").textContent = fullName;
+
+    updateAvatar(fullName);
+
+    showMessage("Your profile has been updated successfully.", "success");
+
+  } catch (error) {
+
+    console.error("Profile update error:", error);
+
+    showMessage(
+      "Unable to save your profile. Please check your internet connection and Firestore permissions.",
+      "error"
+    );
+
+  } finally {
+
+    saveBtn.disabled = false;
+    saveBtn.textContent = "Save Changes";
+
+  }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+
+  try {
+    await signOut(auth);
+    window.location.replace("login.html");
+
+  } catch (error) {
+    console.error("Logout error:", error);
+
+    showMessage("Unable to log out. Please try again.", "error");
+  }
+});
+</script>
+
+</body>
+          </html>
+
