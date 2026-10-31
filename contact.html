@@ -340,12 +340,19 @@ function renderUsers(users) {
     button.type = "button";
     button.textContent = "Message";
 
+    // CONNECTED MESSAGE BUTTON
     button.addEventListener("click", () => {
 
-      showMessage(
-        "Messaging will be connected in our next feature. This person is " +
-        name + "."
-      );
+      if (!user.uid) {
+        showMessage(
+          "This user's account ID is unavailable.",
+          "error"
+        );
+        return;
+      }
+
+      window.location.href =
+        "chat.html?with=" + encodeURIComponent(user.uid);
 
     });
 
@@ -441,5 +448,4 @@ searchInput.addEventListener("input", filterUsers);
 </script>
 
 </body>
-  </html>
-
+</html>
