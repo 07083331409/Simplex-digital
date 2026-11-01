@@ -1,1 +1,378 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard | SIMPLEXPING</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #0B1424;
+  color: #EDF3FC;
+  min-height: 100vh;
+}
+
+header {
+  height: 75px;
+  padding: 0 6%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111E32;
+  border-bottom: 1px solid #263750;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.brand span {
+  color: #5C99F0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-initial {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #3978D5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid #49617F;
+  color: #EDF3FC;
+  padding: 10px 15px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: #263750;
+}
+
+.container {
+  max-width: 1150px;
+  margin: auto;
+  padding: 45px 22px;
+}
+
+.welcome {
+  margin-bottom: 35px;
+}
+
+.welcome h1 {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.welcome h1 span {
+  color: #69A5FA;
+}
+
+.welcome p {
+  color: #9AAAC0;
+  line-height: 1.6;
+}
+
+.section-title {
+  font-size: 18px;
+  margin-bottom: 18px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.dashboard-card {
+  background: #111E32;
+  border: 1px solid #263750;
+  border-radius: 13px;
+  padding: 25px;
+  min-height: 155px;
+  text-decoration: none;
+  color: #EDF3FC;
+  transition: .2s;
+}
+
+.dashboard-card:hover {
+  border-color: #3978D5;
+  transform: translateY(-3px);
+}
+
+.card-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 10px;
+  background: #1B3455;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  margin-bottom: 17px;
+}
+
+.dashboard-card h3 {
+  font-size: 17px;
+  margin-bottom: 8px;
+}
+
+.dashboard-card p {
+  font-size: 13px;
+  color: #9AAAC0;
+  line-height: 1.5;
+}
+
+.account-box {
+  margin-top: 35px;
+  background: #111E32;
+  border: 1px solid #263750;
+  border-radius: 13px;
+  padding: 24px;
+}
+
+.account-box h3 {
+  margin-bottom: 17px;
+}
+
+.account-info {
+  color: #9AAAC0;
+  font-size: 14px;
+  line-height: 2;
+  overflow-wrap: anywhere;
+}
+
+.account-info strong {
+  color: #EDF3FC;
+}
+
+footer {
+  text-align: center;
+  padding: 30px 15px;
+  color: #71839D;
+  font-size: 12px;
+}
+
+#loading {
+  text-align: center;
+  padding: 100px 20px;
+  color: #9AAAC0;
+}
+
+#error {
+  display: none;
+  color: #FFB9C3;
+  text-align: center;
+  padding: 20px;
+}
+
+@media (max-width: 600px) {
+  header {
+    padding: 0 18px;
+  }
+
+  .brand {
+    font-size: 18px;
+  }
+
+  .container {
+    padding: 35px 17px;
+  }
+
+  .welcome h1 {
+    font-size: 25px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .logout-btn {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="loading">Loading your SIMPLEXPING dashboard...</div>
+<div id="error"></div>
+
+<div id="dashboard" style="display:none;">
+
+<header>
+  <div class="brand">SIMPLEX<span>PING</span></div>
+
+  <div class="header-right">
+    <div class="user-initial" id="userInitial">S</div>
+    <button class="logout-btn" id="logoutBtn">Log out</button>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="welcome">
+    <h1>Welcome back, <span id="userName">User</span>!</h1>
+    <p>
+      Your conversations and connections start here.
+      Welcome to your SIMPLEXPING space.
+    </p>
+  </section>
+
+  <h2 class="section-title">Your Workspace</h2>
+
+  <section class="dashboard-grid">
+
+    <a href="chat.html" class="dashboard-card">
+      <div class="card-icon">💬</div>
+      <h3>Messages</h3>
+      <p>Open your conversations and connect with people.</p>
+    </a>
+
+    <a href="contacts.html" class="dashboard-card">
+      <div class="card-icon">👥</div>
+      <h3>Contacts</h3>
+      <p>Explore and manage your personal connections.</p>
+    </a>
+
+    <a href="profile.html" class="dashboard-card">
+      <div class="card-icon">👤</div>
+      <h3>My Profile</h3>
+      <p>View and manage your personal account information.</p>
+    </a>
+
+    <a href="profile.html" class="dashboard-card">
+      <div class="card-icon">⚙️</div>
+      <h3>Account Settings</h3>
+      <p>Manage your account details and preferences.</p>
+    </a>
+
+  </section>
+
+  <section class="account-box">
+    <h3>My Account</h3>
+
+    <div class="account-info">
+      <div><strong>Name:</strong> <span id="accountName">Loading...</span></div>
+      <div><strong>Email:</strong> <span id="accountEmail">Loading...</span></div>
+      <div><strong>Account ID:</strong> <span id="accountId">Loading...</span></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  © 2026 SIMPLEXPING. Connect. Communicate. Belong.
+</footer>
+
+</div>
+
+<script type="module">
+
+import { auth, db } from "./firebase.js";
+
+import {
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import {
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const loading = document.getElementById("loading");
+const dashboard = document.getElementById("dashboard");
+const errorBox = document.getElementById("error");
+const logoutBtn = document.getElementById("logoutBtn");
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  try {
+
+    let fullName = user.displayName || "User";
+
+    const profileRef = doc(db, "users", user.uid);
+    const profileSnapshot = await getDoc(profileRef);
+
+    if (profileSnapshot.exists()) {
+      const profile = profileSnapshot.data();
+      fullName = profile.fullName || fullName;
+    }
+
+    document.getElementById("userName").textContent = fullName;
+    document.getElementById("accountName").textContent = fullName;
+    document.getElementById("accountEmail").textContent = user.email || "Not available";
+    document.getElementById("accountId").textContent = user.uid;
+
+    document.getElementById("userInitial").textContent =
+      fullName.charAt(0).toUpperCase();
+
+    loading.style.display = "none";
+    dashboard.style.display = "block";
+
+  } catch (error) {
+
+    console.error("Dashboard error:", error);
+
+    loading.style.display = "none";
+    errorBox.style.display = "block";
+    errorBox.textContent =
+      "We could not load your account information. Please refresh the page. Error: " +
+      (error.code || error.message);
+
+  }
+
+});
+
+logoutBtn.addEventListener("click", async () => {
+
+  logoutBtn.disabled = true;
+  logoutBtn.textContent = "Logging out...";
+
+  try {
+    await signOut(auth);
+    window.location.replace("login.html");
+
+  } catch (error) {
+    console.error("Logout error:", error);
+    alert("Unable to log out. Please try again.");
+    logoutBtn.disabled = false;
+    logoutBtn.textContent = "Log out";
+  }
+
+});
+
+</script>
+
+</body>
+  </html>
+
