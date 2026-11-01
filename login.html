@@ -169,6 +169,7 @@ input::placeholder {
   margin-bottom: 18px;
   font-size: 13px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .message.error {
@@ -222,6 +223,7 @@ input::placeholder {
   </div>
 
   <h1>Welcome back!</h1>
+
   <p class="subtitle">
     Sign in to your SIMPLEXPING account and continue your conversations.
   </p>
@@ -283,11 +285,13 @@ input::placeholder {
 </div>
 
 <script type="module">
+
 import { auth } from "./firebase.js";
 
 import {
   signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
 const form = document.getElementById("loginForm");
@@ -295,12 +299,22 @@ const message = document.getElementById("message");
 const submitBtn = document.getElementById("submitBtn");
 const passwordInput = document.getElementById("password");
 
+let isSigningIn = false;
+let isRedirecting = false;
+
 function showMessage(text, type) {
   message.textContent = text;
   message.className = "message " + type;
 }
 
-// Show registration success message
+// Check whether the user is already logged in.
+onAuthStateChanged(auth, (user) => {
+  if (user && !isSigningIn && !isRedirecting) {
+    window.location.replace("dashboard.html");
+  }
+});
+
+// Show registration success message.
 const params = new URLSearchParams(window.location.search);
 
 if (params.get("registered") === "1") {
@@ -310,7 +324,7 @@ if (params.get("registered") === "1") {
   );
 }
 
-// Show or hide password
+// Show or hide password.
 document.getElementById("togglePassword")
 .addEventListener("click", () => {
 
@@ -322,26 +336,37 @@ document.getElementById("togglePassword")
     isHidden ? "Hide" : "Show";
 });
 
-// Login
+// Login.
 form.addEventListener("submit", async (event) => {
+
   event.preventDefault();
+
+  if (isSigningIn) return;
 
   const email = document.getElementById("email").value.trim();
   const password = passwordInput.value;
 
+  isSigningIn = true;
   submitBtn.disabled = true;
   submitBtn.textContent = "Signing in...";
 
   try {
+
     await signInWithEmailAndPassword(auth, email, password);
 
-    showMessage("Login successful! Opening SIMPLEXPING...", "success");
+    isRedirecting = true;
+
+    showMessage(
+      "Login successful! Opening your dashboard...",
+      "success"
+    );
 
     setTimeout(() => {
-      window.location.href = "index.html";
-    }, 1000);
+      window.location.replace("dashboard.html");
+    }, 800);
 
   } catch (error) {
+
     console.error("Login error:", error);
 
     let errorMessage = "Unable to sign in. Please try again.";
@@ -352,24 +377,31 @@ form.addEventListener("submit", async (event) => {
       error.code === "auth/user-not-found"
     ) {
       errorMessage = "Incorrect email or password.";
+
     } else if (error.code === "auth/invalid-email") {
       errorMessage = "Please enter a valid email address.";
+
     } else if (error.code === "auth/too-many-requests") {
       errorMessage = "Too many attempts. Please try again later.";
+
     } else if (error.code === "auth/network-request-failed") {
       errorMessage = "Network error. Check your internet connection.";
+
     } else if (error.code === "auth/user-disabled") {
       errorMessage = "This account has been disabled.";
     }
 
     showMessage(errorMessage, "error");
 
+    isSigningIn = false;
     submitBtn.disabled = false;
     submitBtn.textContent = "Sign In";
+
   }
+
 });
 
-// Password reset
+// Password reset.
 document.getElementById("forgotPassword")
 .addEventListener("click", async () => {
 
@@ -384,6 +416,7 @@ document.getElementById("forgotPassword")
   }
 
   try {
+
     await sendPasswordResetEmail(auth, email);
 
     showMessage(
@@ -392,19 +425,24 @@ document.getElementById("forgotPassword")
     );
 
   } catch (error) {
+
     console.error("Password reset error:", error);
 
     if (error.code === "auth/invalid-email") {
       showMessage("Please enter a valid email address.", "error");
+
     } else if (error.code === "auth/network-request-failed") {
       showMessage("Network error. Please try again.", "error");
+
     } else {
       showMessage("Unable to send reset email. Please try again.", "error");
     }
+
   }
+
 });
+
 </script>
 
 </body>
-    </html>
-
+</html>
