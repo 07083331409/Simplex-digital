@@ -3,7 +3,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#091426">
   <title>SIMPLEXPING | Chat</title>
 
   <style>
@@ -14,44 +15,56 @@
       font-family: Arial, sans-serif;
     }
 
+    html {
+      height: 100%;
+    }
+
     body {
       background: #091426;
       color: #f1f5fb;
-      height: 100vh;
+      height: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: stretch;
+      overflow: hidden;
     }
 
     .chat-container {
       width: 100%;
       max-width: 850px;
       height: 100vh;
-      max-height: 900px;
+      height: 100dvh;
       background: #101f35;
       display: flex;
       flex-direction: column;
       border: 1px solid #203651;
+      overflow: hidden;
     }
 
     .chat-header {
-      padding: 18px;
+      flex-shrink: 0;
+      padding: 15px;
       display: flex;
       align-items: center;
       gap: 13px;
       background: #142640;
       border-bottom: 1px solid #263b56;
+      padding-top: max(15px, env(safe-area-inset-top));
     }
 
     .back-btn {
       color: #a9c6ec;
       text-decoration: none;
-      font-size: 23px;
+      font-size: 25px;
+      padding: 5px;
     }
 
     .avatar {
       width: 43px;
       height: 43px;
+      flex-shrink: 0;
       border-radius: 50%;
       background: #28518a;
       display: flex;
@@ -61,9 +74,14 @@
       font-weight: bold;
     }
 
+    .contact-info {
+      min-width: 0;
+    }
+
     .contact-info h3 {
       font-size: 16px;
       margin-bottom: 5px;
+      overflow-wrap: anywhere;
     }
 
     .contact-info p {
@@ -71,13 +89,24 @@
       font-size: 12px;
     }
 
+    #status {
+      flex-shrink: 0;
+      padding: 8px 15px;
+      color: #a9c6ec;
+      font-size: 12px;
+      text-align: center;
+    }
+
     .messages {
       flex: 1;
-      padding: 20px;
+      min-height: 0;
+      padding: 15px;
       overflow-y: auto;
+      overscroll-behavior: contain;
       display: flex;
       flex-direction: column;
       gap: 13px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .empty-message {
@@ -85,10 +114,11 @@
       color: #8499b5;
       margin: auto;
       font-size: 14px;
+      line-height: 1.6;
     }
 
     .message {
-      max-width: 78%;
+      max-width: 82%;
       padding: 12px 15px;
       border-radius: 15px;
       font-size: 14px;
@@ -117,33 +147,58 @@
     }
 
     .message-form {
-      padding: 15px;
+      flex-shrink: 0;
+      width: 100%;
+      padding: 12px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
       display: flex;
+      align-items: center;
       gap: 10px;
       background: #142640;
       border-top: 1px solid #263b56;
+      position: relative;
+      z-index: 5;
     }
 
     .message-form input {
       flex: 1;
       min-width: 0;
-      padding: 14px;
+      width: 0;
+      height: 48px;
+      padding: 0 16px;
       border: 1px solid #304965;
       border-radius: 25px;
       outline: none;
       background: #0b1a2e;
       color: white;
-      font-size: 14px;
+      font-size: 16px;
+      appearance: none;
+      -webkit-appearance: none;
+      pointer-events: auto;
+      touch-action: manipulation;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .message-form input:focus {
+      border-color: #5597ed;
+    }
+
+    .message-form input::placeholder {
+      color: #91a9c6;
     }
 
     .message-form button {
+      flex-shrink: 0;
+      height: 46px;
       border: none;
       background: #3978c7;
       color: white;
-      padding: 0 20px;
+      padding: 0 19px;
       border-radius: 25px;
       font-weight: bold;
       cursor: pointer;
+      touch-action: manipulation;
     }
 
     .message-form button:disabled {
@@ -151,18 +206,20 @@
       cursor: not-allowed;
     }
 
-    #status {
-      padding: 8px 15px;
-      color: #a9c6ec;
-      font-size: 12px;
-      text-align: center;
+    .message-form[hidden] {
+      display: none;
     }
 
     @media (min-width: 600px) {
+      body {
+        align-items: center;
+      }
+
       .chat-container {
         height: 90vh;
+        height: 90dvh;
+        max-height: 900px;
         border-radius: 16px;
-        overflow: hidden;
       }
     }
   </style>
@@ -173,7 +230,7 @@
   <main class="chat-container">
 
     <header class="chat-header">
-      <a href="contacts.html" class="back-btn">‹</a>
+      <a href="contacts.html" class="back-btn" aria-label="Back to contacts">‹</a>
 
       <div class="avatar" id="avatar">?</div>
 
@@ -183,19 +240,21 @@
       </div>
     </header>
 
-    <div id="status">Connecting to chat...</div>
+    <div id="status" role="status">Connecting to chat...</div>
 
     <section class="messages" id="messages">
       <p class="empty-message">Your conversation will appear here.</p>
     </section>
 
-    <form class="message-form" id="messageForm">
+    <form class="message-form" id="messageForm" hidden>
       <input
         type="text"
         id="messageInput"
         placeholder="Write a message..."
         maxlength="2000"
         autocomplete="off"
+        enterkeyhint="send"
+        aria-label="Write a message"
         required
       >
 
@@ -214,10 +273,12 @@
     import {
       doc,
       getDoc,
+      getDocs,
       setDoc,
       collection,
       addDoc,
       query,
+      where,
       orderBy,
       limit,
       onSnapshot,
@@ -241,9 +302,21 @@
     let currentUser = null;
     let conversationId = null;
     let stopMessagesListener = null;
+    let chatReady = false;
+    let sending = false;
 
-    function showStatus(message) {
-      statusText.textContent = message;
+    function showStatus(text) {
+      statusText.textContent = text;
+    }
+
+    function showEmpty(text) {
+      messagesBox.replaceChildren();
+
+      const empty = document.createElement("p");
+      empty.className = "empty-message";
+      empty.textContent = text;
+
+      messagesBox.appendChild(empty);
     }
 
     function showMessage(text, senderId, timestamp) {
@@ -264,32 +337,58 @@
           { hour: "2-digit", minute: "2-digit" }
         );
       } else {
-        time.textContent = "Just now";
+        time.textContent = "Sending...";
       }
 
       message.append(content, time);
       messagesBox.appendChild(message);
     }
 
+    async function checkAcceptedContact() {
+
+      const contactsQuery = query(
+        collection(db, "contacts"),
+        where("participants", "array-contains", currentUser.uid)
+      );
+
+      const snapshot = await getDocs(contactsQuery);
+
+      return snapshot.docs.some(contact => {
+        const participants = contact.data().participants || [];
+
+        return participants.includes(otherUserId);
+      });
+    }
+
     async function startChat() {
+
       if (!otherUserId || otherUserId === currentUser.uid) {
         showStatus("Invalid contact. Return to your contacts.");
-        messageForm.hidden = true;
+        showEmpty("This conversation cannot be opened.");
         return;
       }
 
       try {
+
+        showStatus("Checking contact connection...");
+
+        const isAccepted = await checkAcceptedContact();
+
+        if (!isAccepted) {
+          showStatus("You must accept a contact request before chatting.");
+          showEmpty("This person is not in your accepted contacts.");
+          return;
+        }
+
         const userRef = doc(db, "users", otherUserId);
         const userSnapshot = await getDoc(userRef);
 
         if (!userSnapshot.exists()) {
           showStatus("This user could not be found.");
-          messageForm.hidden = true;
           return;
         }
 
         const otherUser = userSnapshot.data();
-
         const name = otherUser.fullName || otherUser.username || "User";
 
         contactName.textContent = name;
@@ -319,18 +418,16 @@
 
         stopMessagesListener = onSnapshot(
           messagesQuery,
-          (snapshot) => {
+          snapshot => {
+
             messagesBox.replaceChildren();
 
             if (snapshot.empty) {
-              const empty = document.createElement("p");
-              empty.className = "empty-message";
-              empty.textContent = "No messages yet. Say hello!";
-              messagesBox.appendChild(empty);
+              showEmpty("No messages yet. Say hello!");
               return;
             }
 
-            snapshot.forEach((messageDoc) => {
+            snapshot.forEach(messageDoc => {
               const data = messageDoc.data();
 
               showMessage(
@@ -341,31 +438,42 @@
             });
 
             messagesBox.scrollTop = messagesBox.scrollHeight;
+
           },
-          (error) => {
-            console.error(error);
-            showStatus("Unable to load messages. Check Firestore rules.");
+          error => {
+            console.error("Message listener error:", error);
+            showStatus("Unable to load messages. Check Firestore permissions.");
           }
         );
+
+        chatReady = true;
+        messageForm.hidden = false;
 
         showStatus("Chat connected.");
 
       } catch (error) {
-        console.error(error);
+
+        console.error("Chat opening error:", error);
         showStatus("Could not open chat: " + error.message);
+
       }
     }
 
-    messageForm.addEventListener("submit", async (event) => {
+    messageForm.addEventListener("submit", async event => {
+
       event.preventDefault();
 
       const text = messageInput.value.trim();
 
-      if (!text || !conversationId) return;
+      if (!text || !conversationId || !chatReady || sending) {
+        return;
+      }
 
+      sending = true;
       sendButton.disabled = true;
 
       try {
+
         const messagesRef = collection(
           db,
           "conversations",
@@ -386,17 +494,26 @@
         );
 
         messageInput.value = "";
+        showStatus("Message sent.");
+
         messageInput.focus();
 
       } catch (error) {
-        console.error(error);
+
+        console.error("Message sending error:", error);
         showStatus("Message not sent: " + error.message);
+
       } finally {
+
+        sending = false;
         sendButton.disabled = false;
+
       }
+
     });
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, user => {
+
       if (!user) {
         window.location.replace("login.html");
         return;
@@ -404,15 +521,18 @@
 
       currentUser = user;
       startChat();
+
     });
 
-    window.addEventListener("beforeunload", () => {
+    window.addEventListener("pagehide", () => {
+
       if (stopMessagesListener) {
         stopMessagesListener();
       }
+
     });
+
   </script>
 
 </body>
-  </html>
-
+</html>
