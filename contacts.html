@@ -65,8 +65,40 @@ header a {
   line-height: 1.6;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 22px;
+  padding-bottom: 5px;
+}
+
+.tab {
+  flex: 1;
+  min-width: 105px;
+  padding: 13px 10px;
+  border: 1px solid #263750;
+  border-radius: 9px;
+  background: #111E32;
+  color: #A8B8CE;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #244B7D;
+  border-color: #3978D5;
+  color: white;
+}
+
+.tab span {
+  margin-left: 4px;
+  color: #8FC0FF;
+}
+
 .search-box {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 .search-box input {
@@ -88,22 +120,31 @@ header a {
   color: #8293AA;
 }
 
-.contacts-card {
+.panel {
+  display: none;
+}
+
+.panel.active {
+  display: block;
+}
+
+.card {
   background: #111E32;
   border: 1px solid #263750;
   border-radius: 16px;
   overflow: hidden;
 }
 
-.contacts-heading {
+.card-heading {
   padding: 20px;
   border-bottom: 1px solid #263750;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 
-.contacts-heading h2 {
+.card-heading h2 {
   font-size: 17px;
 }
 
@@ -112,72 +153,102 @@ header a {
   font-size: 12px;
 }
 
-.contact-list {
+.list {
   padding: 5px 20px;
 }
 
-.contact {
+.person {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 14px;
   padding: 17px 0;
   border-bottom: 1px solid #263750;
 }
 
-.contact:last-child {
+.person:last-child {
   border-bottom: none;
 }
 
 .avatar {
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
   flex-shrink: 0;
   border-radius: 50%;
   background: linear-gradient(135deg, #244B7D, #3978D5);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: bold;
   color: white;
 }
 
-.contact-info {
+.info {
   flex: 1;
   min-width: 0;
 }
 
-.contact-info h3 {
+.info h3 {
   font-size: 14px;
   margin-bottom: 6px;
   overflow-wrap: anywhere;
 }
 
-.contact-info p {
+.info p {
   color: #9AAAC0;
   font-size: 12px;
   overflow-wrap: anywhere;
 }
 
-.contact button {
-  background: #3978D5;
-  color: white;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  justify-content: flex-end;
+}
+
+.action-btn {
   border: none;
   border-radius: 8px;
-  padding: 11px 15px;
+  padding: 10px 13px;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
+  color: white;
+  background: #3978D5;
 }
 
-.contact button:hover {
+.action-btn:hover {
   background: #2B65B9;
+}
+
+.action-btn.secondary {
+  background: #263750;
+  color: #D7E4F5;
+}
+
+.action-btn.danger {
+  background: #71303B;
+  color: #FFD4DA;
+}
+
+.action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.empty {
+  text-align: center;
+  padding: 35px 15px;
+  color: #9AAAC0;
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .message {
   display: none;
   padding: 13px;
-  margin: 20px;
+  margin: 15px 20px;
   border-radius: 8px;
   font-size: 13px;
   line-height: 1.5;
@@ -189,17 +260,16 @@ header a {
   color: #FFB9C3;
 }
 
+.message.success {
+  display: block;
+  background: #183D35;
+  color: #A9E8D2;
+}
+
 .message.info {
   display: block;
   background: #1B3557;
   color: #A8C9F7;
-}
-
-.empty {
-  text-align: center;
-  padding: 35px 15px;
-  color: #9AAAC0;
-  font-size: 13px;
 }
 
 @media(max-width: 500px) {
@@ -207,22 +277,26 @@ header a {
     padding: 15px;
   }
 
-  .contact-list {
-    padding: 5px 14px;
+  .list {
+    padding: 5px 13px;
   }
 
-  .contact {
+  .person {
     gap: 10px;
   }
 
   .avatar {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     font-size: 16px;
   }
 
-  .contact button {
-    padding: 10px;
+  .action-btn {
+    padding: 9px;
+  }
+
+  .card-heading {
+    padding: 16px;
   }
 }
 </style>
@@ -232,36 +306,99 @@ header a {
 
 <header>
   <div class="brand">SIMPLEX<span>PING</span></div>
-  <a href="index.html">← Dashboard</a>
+  <a href="dashboard.html">← Dashboard</a>
 </header>
 
 <main class="container">
 
   <div class="page-heading">
-    <h1>Discover People</h1>
-    <p>Find people and connect with them on SIMPLEXPING.</p>
+    <h1>My Contacts</h1>
+    <p>Discover people, manage contact requests and connect privately.</p>
   </div>
 
-  <div class="search-box">
-    <input
-      type="search"
-      id="searchInput"
-      placeholder="Search by name or username..."
-      autocomplete="off"
-    >
-  </div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="discover">
+      Discover
+    </button>
 
-  <section class="contacts-card">
+    <button class="tab" data-tab="requests">
+      Requests <span id="requestBadge"></span>
+    </button>
 
-    <div class="contacts-heading">
-      <h2>People on SIMPLEXPING</h2>
-      <span class="count" id="count">Loading...</span>
+    <button class="tab" data-tab="contacts">
+      My Contacts
+    </button>
+  </nav>
+
+  <div id="message" class="message"></div>
+
+  <!-- DISCOVER PEOPLE -->
+
+  <section class="panel active" id="discover">
+
+    <div class="search-box">
+      <input
+        type="search"
+        id="searchInput"
+        placeholder="Search by name or username..."
+        autocomplete="off"
+      >
     </div>
 
-    <div id="message" class="message"></div>
+    <div class="card">
+      <div class="card-heading">
+        <h2>People on SIMPLEXPING</h2>
+        <span class="count" id="discoverCount">Loading...</span>
+      </div>
 
-    <div id="contactList" class="contact-list">
-      <div class="empty">Loading people...</div>
+      <div class="list" id="discoverList">
+        <div class="empty">Loading people...</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- CONTACT REQUESTS -->
+
+  <section class="panel" id="requests">
+
+    <div class="card">
+      <div class="card-heading">
+        <h2>Incoming Requests</h2>
+        <span class="count" id="incomingCount">0</span>
+      </div>
+
+      <div class="list" id="incomingList">
+        <div class="empty">Loading requests...</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="card-heading">
+        <h2>Sent Requests</h2>
+        <span class="count" id="outgoingCount">0</span>
+      </div>
+
+      <div class="list" id="outgoingList">
+        <div class="empty">No sent requests.</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ACCEPTED CONTACTS -->
+
+  <section class="panel" id="contacts">
+
+    <div class="card">
+      <div class="card-heading">
+        <h2>My Contacts</h2>
+        <span class="count" id="contactsCount">0</span>
+      </div>
+
+      <div class="list" id="contactsList">
+        <div class="empty">Loading contacts...</div>
+      </div>
     </div>
 
   </section>
@@ -277,159 +414,573 @@ import {
 
 import {
   collection,
+  doc,
   getDocs,
   query,
-  limit
+  where,
+  limit,
+  writeBatch,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-const contactList = document.getElementById("contactList");
+const discoverList = document.getElementById("discoverList");
+const incomingList = document.getElementById("incomingList");
+const outgoingList = document.getElementById("outgoingList");
+const contactsList = document.getElementById("contactsList");
+
 const searchInput = document.getElementById("searchInput");
-const count = document.getElementById("count");
 const message = document.getElementById("message");
+
+const discoverCount = document.getElementById("discoverCount");
+const incomingCount = document.getElementById("incomingCount");
+const outgoingCount = document.getElementById("outgoingCount");
+const contactsCount = document.getElementById("contactsCount");
+const requestBadge = document.getElementById("requestBadge");
 
 let currentUser = null;
 let allUsers = [];
+let incomingRequests = [];
+let outgoingRequests = [];
+let acceptedContacts = [];
+let busy = false;
 
 function showMessage(text, type = "info") {
   message.textContent = text;
   message.className = "message " + type;
 }
 
-function renderUsers(users) {
+function clearMessage() {
+  message.textContent = "";
+  message.className = "message";
+}
 
-  contactList.replaceChildren();
+function getName(user) {
+  return user.fullName || user.displayName || "SIMPLEXPING User";
+}
 
-  count.textContent = users.length + " people";
+function getUsername(user) {
+  return user.username ? "@" + user.username : "SIMPLEXPING member";
+}
 
-  if (users.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "empty";
-    empty.textContent = "No people found.";
-    contactList.appendChild(empty);
+function getUserById(uid) {
+  return allUsers.find(user => user.uid === uid);
+}
+
+function emptyMessage(container, text) {
+  container.replaceChildren();
+
+  const div = document.createElement("div");
+  div.className = "empty";
+  div.textContent = text;
+
+  container.appendChild(div);
+}
+
+function makeButton(text, action, style = "") {
+  const button = document.createElement("button");
+
+  button.type = "button";
+  button.className = "action-btn " + style;
+  button.textContent = text;
+
+  button.addEventListener("click", action);
+
+  return button;
+}
+
+function createPerson(user, actions = []) {
+  const name = getName(user);
+
+  const row = document.createElement("div");
+  row.className = "person";
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = name.charAt(0).toUpperCase();
+
+  const info = document.createElement("div");
+  info.className = "info";
+
+  const heading = document.createElement("h3");
+  heading.textContent = name;
+
+  const username = document.createElement("p");
+  username.textContent = getUsername(user);
+
+  info.append(heading, username);
+
+  const actionBox = document.createElement("div");
+  actionBox.className = "actions";
+
+  actions.forEach(button => actionBox.appendChild(button));
+
+  row.append(avatar, info, actionBox);
+
+  return row;
+}
+
+// SWITCH BETWEEN THE THREE SECTIONS
+
+document.querySelectorAll(".tab").forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.classList.remove("active");
+    });
+
+    document.querySelectorAll(".panel").forEach(panel => {
+      panel.classList.remove("active");
+    });
+
+    button.classList.add("active");
+
+    document.getElementById(button.dataset.tab)
+      .classList.add("active");
+
+    clearMessage();
+  });
+
+});
+
+// DISCOVER PEOPLE
+
+function renderDiscover() {
+
+  const search = searchInput.value.trim().toLowerCase();
+
+  const contactIds = new Set(
+    acceptedContacts.flatMap(item => item.participants)
+  );
+
+  const pendingOutgoing = new Set(
+    outgoingRequests
+      .filter(item => item.status === "pending")
+      .map(item => item.receiverId)
+  );
+
+  const pendingIncoming = new Set(
+    incomingRequests
+      .filter(item => item.status === "pending")
+      .map(item => item.senderId)
+  );
+
+  const filtered = allUsers.filter(user => {
+
+    const name = getName(user).toLowerCase();
+    const username = (user.username || "").toLowerCase();
+
+    return user.uid !== currentUser.uid
+      && (name.includes(search) || username.includes(search));
+  });
+
+  discoverList.replaceChildren();
+  discoverCount.textContent = filtered.length + " people";
+
+  if (filtered.length === 0) {
+    emptyMessage(discoverList, "No matching people found.");
     return;
   }
 
-  users.forEach(user => {
+  filtered.forEach(user => {
 
-    const name = user.fullName || user.displayName || "SIMPLEXPING User";
+    const buttons = [];
 
-    const username = user.username
-      ? "@" + user.username
-      : "SIMPLEXPING member";
+    if (contactIds.has(user.uid)) {
 
-    const card = document.createElement("div");
-    card.className = "contact";
+      buttons.push(
+        makeButton("Connected", () => {}, "secondary")
+      );
 
-    const avatar = document.createElement("div");
-    avatar.className = "avatar";
-    avatar.textContent = name.charAt(0).toUpperCase();
+    } else if (pendingOutgoing.has(user.uid)) {
 
-    const info = document.createElement("div");
-    info.className = "contact-info";
+      buttons.push(
+        makeButton("Request Sent", () => {}, "secondary")
+      );
 
-    const heading = document.createElement("h3");
-    heading.textContent = name;
+    } else if (pendingIncoming.has(user.uid)) {
 
-    const usernameText = document.createElement("p");
-    usernameText.textContent = username;
+      buttons.push(
+        makeButton("View Request", () => {
+          document.querySelector('[data-tab="requests"]').click();
+        })
+      );
 
-    info.appendChild(heading);
-    info.appendChild(usernameText);
+    } else {
 
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = "Message";
+      buttons.push(
+        makeButton("Add Contact", () => sendRequest(user.uid))
+      );
 
-    // CONNECTED MESSAGE BUTTON
-    button.addEventListener("click", () => {
+    }
 
-      if (!user.uid) {
-        showMessage(
-          "This user's account ID is unavailable.",
-          "error"
-        );
-        return;
-      }
+    discoverList.appendChild(createPerson(user, buttons));
+
+  });
+}
+
+// SEND CONTACT REQUEST
+
+async function sendRequest(receiverId) {
+
+  if (busy) return;
+
+  if (!receiverId || receiverId === currentUser.uid) {
+    showMessage("Invalid contact request.", "error");
+    return;
+  }
+
+  const alreadyConnected = acceptedContacts.some(item =>
+    item.participants.includes(receiverId)
+  );
+
+  const alreadyPending = outgoingRequests.some(item =>
+    item.receiverId === receiverId && item.status === "pending"
+  );
+
+  if (alreadyConnected || alreadyPending) {
+    showMessage("You are already connected or have a pending request.", "info");
+    return;
+  }
+
+  busy = true;
+  clearMessage();
+
+  try {
+
+    const requestRef = doc(collection(db, "contactRequests"));
+
+    const batch = writeBatch(db);
+
+    batch.set(requestRef, {
+      senderId: currentUser.uid,
+      receiverId: receiverId,
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    await batch.commit();
+
+    showMessage("Contact request sent successfully.", "success");
+
+    await loadContactData();
+
+  } catch (error) {
+
+    console.error("Send request error:", error);
+
+    showMessage(
+      "Unable to send request. Please check your connection and try again.",
+      "error"
+    );
+
+  } finally {
+    busy = false;
+  }
+}
+
+// INCOMING REQUESTS
+
+function renderIncoming() {
+
+  incomingList.replaceChildren();
+
+  const pending = incomingRequests.filter(item =>
+    item.status === "pending"
+  );
+
+  incomingCount.textContent = pending.length;
+  requestBadge.textContent = pending.length
+    ? "(" + pending.length + ")"
+    : "";
+
+  if (pending.length === 0) {
+    emptyMessage(incomingList, "You have no incoming contact requests.");
+    return;
+  }
+
+  pending.forEach(request => {
+
+    const sender = getUserById(request.senderId);
+
+    if (!sender) return;
+
+    const acceptButton = makeButton(
+      "Accept",
+      () => acceptRequest(request.id)
+    );
+
+    const rejectButton = makeButton(
+      "Reject",
+      () => rejectRequest(request.id),
+      "danger"
+    );
+
+    incomingList.appendChild(
+      createPerson(sender, [acceptButton, rejectButton])
+    );
+
+  });
+}
+
+// ACCEPT CONTACT REQUEST
+
+async function acceptRequest(requestId) {
+
+  if (busy) return;
+
+  const request = incomingRequests.find(item =>
+    item.id === requestId && item.status === "pending"
+  );
+
+  if (!request || request.receiverId !== currentUser.uid) {
+    showMessage("This request is no longer available.", "error");
+    return;
+  }
+
+  busy = true;
+  clearMessage();
+
+  try {
+
+    const batch = writeBatch(db);
+
+    const requestRef = doc(db, "contactRequests", requestId);
+    const contactRef = doc(db, "contacts", requestId);
+
+    batch.update(requestRef, {
+      status: "accepted"
+    });
+
+    batch.set(contactRef, {
+      requestId: requestId,
+      participants: [
+        request.senderId,
+        request.receiverId
+      ],
+      createdAt: serverTimestamp()
+    });
+
+    await batch.commit();
+
+    showMessage("Contact request accepted. You are now connected.", "success");
+
+    await loadContactData();
+
+  } catch (error) {
+
+    console.error("Accept request error:", error);
+
+    showMessage(
+      "Unable to accept this request. Please try again.",
+      "error"
+    );
+
+  } finally {
+    busy = false;
+  }
+}
+
+// REJECT CONTACT REQUEST
+
+async function rejectRequest(requestId) {
+
+  if (busy) return;
+
+  const request = incomingRequests.find(item =>
+    item.id === requestId && item.status === "pending"
+  );
+
+  if (!request || request.receiverId !== currentUser.uid) {
+    showMessage("This request is no longer available.", "error");
+    return;
+  }
+
+  busy = true;
+  clearMessage();
+
+  try {
+
+    const batch = writeBatch(db);
+
+    batch.update(
+      doc(db, "contactRequests", requestId),
+      { status: "rejected" }
+    );
+
+    await batch.commit();
+
+    showMessage("Contact request rejected.", "success");
+
+    await loadContactData();
+
+  } catch (error) {
+
+    console.error("Reject request error:", error);
+
+    showMessage(
+      "Unable to reject this request. Please try again.",
+      "error"
+    );
+
+  } finally {
+    busy = false;
+  }
+}
+
+// SENT REQUESTS
+
+function renderOutgoing() {
+
+  outgoingList.replaceChildren();
+
+  const pending = outgoingRequests.filter(item =>
+    item.status === "pending"
+  );
+
+  outgoingCount.textContent = pending.length;
+
+  if (pending.length === 0) {
+    emptyMessage(outgoingList, "You have no pending sent requests.");
+    return;
+  }
+
+  pending.forEach(request => {
+
+    const receiver = getUserById(request.receiverId);
+
+    if (!receiver) return;
+
+    outgoingList.appendChild(
+      createPerson(receiver, [
+        makeButton("Request Pending", () => {}, "secondary")
+      ])
+    );
+
+  });
+}
+
+// ACCEPTED CONTACTS
+
+function renderContacts() {
+
+  contactsList.replaceChildren();
+
+  const people = [];
+
+  acceptedContacts.forEach(contact => {
+
+    const otherId = contact.participants.find(id =>
+      id !== currentUser.uid
+    );
+
+    const user = getUserById(otherId);
+
+    if (user) people.push(user);
+
+  });
+
+  contactsCount.textContent = people.length;
+
+  if (people.length === 0) {
+    emptyMessage(
+      contactsList,
+      "You have no accepted contacts yet. Discover people and send a request to get started."
+    );
+    return;
+  }
+
+  people.forEach(user => {
+
+    const button = makeButton("Message", () => {
 
       window.location.href =
         "chat.html?with=" + encodeURIComponent(user.uid);
 
     });
 
-    card.appendChild(avatar);
-    card.appendChild(info);
-    card.appendChild(button);
-
-    contactList.appendChild(card);
-
-  });
-}
-
-function filterUsers() {
-
-  const search = searchInput.value.trim().toLowerCase();
-
-  const filtered = allUsers.filter(user => {
-
-    const name = (user.fullName || user.displayName || "").toLowerCase();
-
-    const username = (user.username || "").toLowerCase();
-
-    return name.includes(search) || username.includes(search);
+    contactsList.appendChild(createPerson(user, [button]));
 
   });
 
-  renderUsers(filtered);
 }
 
-async function loadUsers() {
+// LOAD FIRESTORE DATA
 
-  contactList.textContent = "Loading people...";
+async function loadContactData() {
+
+  if (!currentUser) return;
 
   try {
 
-    const usersQuery = query(
-      collection(db, "users"),
-      limit(100)
-    );
+    const results = await Promise.all([
 
-    const snapshot = await getDocs(usersQuery);
+      getDocs(query(
+        collection(db, "users"),
+        limit(100)
+      )),
 
-    allUsers = [];
+      getDocs(query(
+        collection(db, "contactRequests"),
+        where("receiverId", "==", currentUser.uid)
+      )),
 
-    snapshot.forEach(document => {
+      getDocs(query(
+        collection(db, "contactRequests"),
+        where("senderId", "==", currentUser.uid)
+      )),
 
-      const user = document.data();
+      getDocs(query(
+        collection(db, "contacts"),
+        where("participants", "array-contains", currentUser.uid)
+      ))
 
-      // Never display the current user in their own contacts list.
-      if (document.id !== currentUser.uid) {
+    ]);
 
-        allUsers.push({
-          uid: document.id,
-          ...user
-        });
+    allUsers = results[0].docs
+      .map(item => ({
+        uid: item.id,
+        ...item.data()
+      }))
+      .filter(user => user.uid !== currentUser.uid);
 
-      }
+    incomingRequests = results[1].docs.map(item => ({
+      id: item.id,
+      ...item.data()
+    }));
 
-    });
+    outgoingRequests = results[2].docs.map(item => ({
+      id: item.id,
+      ...item.data()
+    }));
 
-    filterUsers();
+    acceptedContacts = results[3].docs.map(item => ({
+      id: item.id,
+      ...item.data()
+    }));
+
+    renderDiscover();
+    renderIncoming();
+    renderOutgoing();
+    renderContacts();
 
   } catch (error) {
 
-    console.error("Contacts loading error:", error);
-
-    contactList.textContent = "";
+    console.error("Contact data loading error:", error);
 
     showMessage(
-      "Unable to load people. Check your Firestore permissions and internet connection.",
+      "Unable to load your contacts. Check your internet connection and Firestore permissions.",
       "error"
     );
 
-    count.textContent = "Unavailable";
-
   }
 }
+
+// SEARCH
+
+searchInput.addEventListener("input", renderDiscover);
+
+// AUTHENTICATION
 
 onAuthStateChanged(auth, async user => {
 
@@ -440,12 +991,11 @@ onAuthStateChanged(auth, async user => {
 
   currentUser = user;
 
-  await loadUsers();
+  await loadContactData();
 
 });
-
-searchInput.addEventListener("input", filterUsers);
 </script>
 
 </body>
-</html>
+  </html>
+  
