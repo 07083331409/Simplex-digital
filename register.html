@@ -146,7 +146,8 @@ input::placeholder {
   border-radius: 8px;
   margin-bottom: 17px;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .message.error {
@@ -215,37 +216,24 @@ input::placeholder {
 
     <div class="form-group">
       <label for="fullName">Full name</label>
-      <input
-        type="text"
-        id="fullName"
+      <input type="text" id="fullName"
         placeholder="Enter your full name"
-        autocomplete="name"
-        required
-        maxlength="80"
-      >
+        autocomplete="name" required maxlength="80">
     </div>
 
     <div class="form-group">
       <label for="email">Email address</label>
-      <input
-        type="email"
-        id="email"
+      <input type="email" id="email"
         placeholder="example@email.com"
-        autocomplete="email"
-        required
-      >
+        autocomplete="email" required>
     </div>
 
     <div class="form-group">
       <label for="password">Create password</label>
-      <input
-        type="password"
-        id="password"
+      <input type="password" id="password"
         placeholder="Create a password"
         autocomplete="new-password"
-        minlength="8"
-        required
-      >
+        minlength="8" required>
       <p class="password-note">
         Use at least 8 characters.
       </p>
@@ -253,13 +241,9 @@ input::placeholder {
 
     <div class="form-group">
       <label for="confirmPassword">Confirm password</label>
-      <input
-        type="password"
-        id="confirmPassword"
+      <input type="password" id="confirmPassword"
         placeholder="Enter password again"
-        autocomplete="new-password"
-        required
-      >
+        autocomplete="new-password" required>
     </div>
 
     <button type="submit" class="submit-btn" id="submitBtn">
@@ -280,18 +264,6 @@ input::placeholder {
 </div>
 
 <script type="module">
-import { auth, db } from "./firebase.js";
-
-import {
-  createUserWithEmailAndPassword,
-  updateProfile
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
-import {
-  doc,
-  setDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const form = document.getElementById("registerForm");
 const message = document.getElementById("message");
@@ -300,6 +272,20 @@ const submitBtn = document.getElementById("submitBtn");
 function showMessage(text, type) {
   message.textContent = text;
   message.className = "message " + type;
+}
+
+function showError(error, stage) {
+  console.error("SIMPLEXPING registration error:", error);
+
+  const code = error?.code || "unknown-error";
+  const details = error?.message || String(error);
+
+  showMessage(
+    "Registration failed during: " + stage +
+    "\nError code: " + code +
+    "\nDetails: " + details,
+    "error"
+  );
 }
 
 form.addEventListener("submit", async (event) => {
@@ -328,8 +314,31 @@ form.addEventListener("submit", async (event) => {
   submitBtn.disabled = true;
   submitBtn.textContent = "Creating account...";
 
+  let stage = "Loading Firebase";
+
   try {
-    const credential = await createUserWithEmailAndPassword(
+
+    // Load Firebase modules and configuration.
+    const firebase = await import("./firebase.js");
+
+    const auth = firebase.auth;
+    const db = firebase.db;
+
+    const authFunctions = await import(
+      "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
+    );
+
+    const firestoreFunctions = await import(
+      "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js"
+    );
+
+    if (!auth || !db) {
+      throw new Error("Firebase Auth or Firestore was not initialized.");
+    }
+
+    stage = "Creating Firebase Authentication account";
+
+    const credential = await authFunctions.createUserWithEmailAndPassword(
       auth,
       email,
       password
@@ -337,31 +346,25 @@ form.addEventListener("submit", async (event) => {
 
     const user = credential.user;
 
-    await updateProfile(user, {
+    stage = "Saving user name";
+
+    await authFunctions.updateProfile(user, {
       displayName: fullName
     });
 
-    try {
-      await setDoc(doc(db, "users", user.uid), {
+    stage = "Saving user profile in Firestore";
+
+    await firestoreFunctions.setDoc(
+      firestoreFunctions.doc(db, "users", user.uid),
+      {
         uid: user.uid,
         fullName: fullName,
         email: user.email,
         photoURL: null,
         status: "offline",
-        createdAt: serverTimestamp()
-      });
-    } catch (profileError) {
-      console.error("Profile saving failed:", profileError);
-
-      showMessage(
-        "Your account was created, but your profile could not be saved. Please contact support.",
-        "error"
-      );
-
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Create Account";
-      return;
-    }
+        createdAt: firestoreFunctions.serverTimestamp()
+      }
+    );
 
     showMessage(
       "Account created successfully! Taking you to login...",
@@ -375,33 +378,18 @@ form.addEventListener("submit", async (event) => {
     }, 1800);
 
   } catch (error) {
-    console.error("Registration error:", error);
 
-    let errorMessage = "Something went wrong. Please try again.";
-
-    if (error.code === "auth/email-already-in-use") {
-      errorMessage = "This email address already has an account.";
-    } else if (error.code === "auth/invalid-email") {
-      errorMessage = "Please enter a valid email address.";
-    } else if (error.code === "auth/weak-password") {
-      errorMessage = "Please choose a stronger password.";
-    } else if (error.code === "auth/network-request-failed") {
-      errorMessage = "Network error. Please check your internet connection.";
-    } else if (error.code === "auth/operation-not-allowed") {
-      errorMessage = "Email and password registration is not enabled in Firebase.";
-    }
-
-    showMessage(errorMessage, "error");
+    showError(error, stage);
 
   } finally {
-    if (submitBtn.textContent !== "Create Account") {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Create Account";
-    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Create Account";
+
   }
 });
+
 </script>
 
 </body>
-        </html>
-
+</html>
