@@ -28,6 +28,7 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: 15px 0 25px;
+  gap: 12px;
 }
 
 .brand {
@@ -81,8 +82,8 @@ header a {
 }
 
 .avatar {
-  width: 85px;
-  height: 85px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   background: linear-gradient(135deg, #244B7D, #3978D5);
   display: flex;
@@ -92,6 +93,20 @@ header a {
   font-size: 32px;
   font-weight: bold;
   flex-shrink: 0;
+  overflow: hidden;
+  border: 3px solid #3978D5;
+}
+
+.avatar img {
+  display: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-info {
+  min-width: 0;
 }
 
 .profile-info h2 {
@@ -113,6 +128,28 @@ header a {
   font-size: 12px;
 }
 
+.photo-actions {
+  margin-top: 12px;
+}
+
+.photo-btn {
+  background: #243F63;
+  color: #DCEBFF;
+  padding: 10px 13px;
+  font-size: 12px;
+}
+
+.photo-btn:hover {
+  background: #315782;
+}
+
+.photo-help {
+  color: #8293AA;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
 .section-title {
   font-size: 17px;
   margin-bottom: 20px;
@@ -129,7 +166,8 @@ label {
   font-weight: bold;
 }
 
-input {
+input[type="text"],
+input[type="email"] {
   width: 100%;
   padding: 14px;
   border: 1px solid #31435E;
@@ -146,6 +184,10 @@ input:focus {
 
 input:disabled {
   opacity: .7;
+}
+
+#photoInput {
+  display: none;
 }
 
 .help {
@@ -201,6 +243,7 @@ button:disabled {
   margin-bottom: 20px;
   font-size: 13px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .message.error {
@@ -226,16 +269,21 @@ button:disabled {
 
   .profile-top {
     align-items: flex-start;
+    gap: 14px;
   }
 
   .avatar {
-    width: 65px;
-    height: 65px;
+    width: 75px;
+    height: 75px;
     font-size: 25px;
   }
 
   .profile-info h2 {
     font-size: 17px;
+  }
+
+  header .brand {
+    font-size: 19px;
   }
 
   .actions button {
@@ -249,7 +297,7 @@ button:disabled {
 
 <header>
   <div class="brand">SIMPLEX<span>PING</span></div>
-  <a href="index.html">← Back to dashboard</a>
+  <a href="dashboard.html">← Back to dashboard</a>
 </header>
 
 <main class="container">
@@ -262,13 +310,34 @@ button:disabled {
   <section class="profile-card">
 
     <div class="profile-top">
-      <div class="avatar" id="avatar">S</div>
+
+      <div class="avatar" id="avatar">
+        <span id="avatarInitial">S</span>
+        <img id="avatarImage" alt="Your profile picture">
+      </div>
 
       <div class="profile-info">
         <h2 id="displayName">Loading profile...</h2>
         <p id="displayEmail"></p>
         <span class="online-status">● Account active</span>
+
+        <div class="photo-actions">
+          <button type="button" class="photo-btn" id="choosePhotoBtn">
+            Change profile picture
+          </button>
+
+          <input
+            type="file"
+            id="photoInput"
+            accept="image/jpeg,image/png,image/webp"
+          >
+
+          <p class="photo-help">
+            JPG, PNG or WebP. Maximum size: 200 KB.
+          </p>
+        </div>
       </div>
+
     </div>
 
     <h3 class="section-title">Personal information</h3>
@@ -306,11 +375,7 @@ button:disabled {
 
       <div class="form-group">
         <label for="email">Email address</label>
-        <input
-          type="email"
-          id="email"
-          disabled
-        >
+        <input type="email" id="email" disabled>
         <p class="help">
           Your email is managed by Firebase Authentication.
         </p>
@@ -348,25 +413,50 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+const CLOUD_NAME = "ewzaj6yw";
+const UPLOAD_PRESET = "simplexping_profiles";
+const MAX_FILE_SIZE = 200 * 1024;
+
 const form = document.getElementById("profileForm");
 const message = document.getElementById("message");
 const saveBtn = document.getElementById("saveBtn");
+const photoInput = document.getElementById("photoInput");
+const choosePhotoBtn = document.getElementById("choosePhotoBtn");
+const avatarInitial = document.getElementById("avatarInitial");
+const avatarImage = document.getElementById("avatarImage");
 
 let currentUser = null;
 let originalUsername = "";
+let uploadInProgress = false;
 
 function showMessage(text, type) {
   message.textContent = text;
   message.className = "message " + type;
 }
 
-function updateAvatar(name) {
-  const firstLetter = name.trim().charAt(0).toUpperCase() || "S";
-  document.getElementById("avatar").textContent = firstLetter;
+function updateAvatar(name, photoURL = "") {
+  const firstLetter =
+    name.trim().charAt(0).toUpperCase() || "S";
+
+  avatarInitial.textContent = firstLetter;
+
+  if (photoURL) {
+    avatarImage.src = photoURL;
+    avatarImage.style.display = "block";
+    avatarInitial.style.display = "none";
+  } else {
+    avatarImage.removeAttribute("src");
+    avatarImage.style.display = "none";
+    avatarInitial.style.display = "block";
+  }
 }
 
-onAuthStateChanged(auth, async (user) => {
+avatarImage.addEventListener("error", () => {
+  avatarImage.style.display = "none";
+  avatarInitial.style.display = "block";
+});
 
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.replace("login.html");
     return;
@@ -374,26 +464,34 @@ onAuthStateChanged(auth, async (user) => {
 
   currentUser = user;
 
-  document.getElementById("displayEmail").textContent = user.email || "";
-  document.getElementById("email").value = user.email || "";
+  document.getElementById("displayEmail").textContent =
+    user.email || "";
+
+  document.getElementById("email").value =
+    user.email || "";
 
   try {
     const userRef = doc(db, "users", user.uid);
     const snapshot = await getDoc(userRef);
 
-    const profile = snapshot.exists() ? snapshot.data() : {};
+    const profile = snapshot.exists()
+      ? snapshot.data()
+      : {};
 
     const name = profile.fullName || user.displayName || "";
+    const photoURL = profile.photoURL || user.photoURL || "";
 
     document.getElementById("fullName").value = name;
-    document.getElementById("username").value = profile.username || "";
+
+    document.getElementById("username").value =
+      profile.username || "";
 
     document.getElementById("displayName").textContent =
       name || "SIMPLEXPING User";
 
     originalUsername = profile.username || "";
 
-    updateAvatar(name);
+    updateAvatar(name, photoURL);
 
   } catch (error) {
     console.error("Profile loading error:", error);
@@ -405,8 +503,131 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-form.addEventListener("submit", async (event) => {
+// Open the phone gallery.
+choosePhotoBtn.addEventListener("click", () => {
+  if (!currentUser) {
+    showMessage("Please sign in first.", "error");
+    return;
+  }
 
+  photoInput.click();
+});
+
+// Upload a selected picture to Cloudinary.
+photoInput.addEventListener("change", async () => {
+  const file = photoInput.files[0];
+
+  if (!file) return;
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+  ];
+
+  if (!allowedTypes.includes(file.type)) {
+    showMessage(
+      "Choose a JPG, PNG, or WebP image.",
+      "error"
+    );
+    photoInput.value = "";
+    return;
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    showMessage(
+      "Your picture is larger than 200 KB. Please choose a smaller image.",
+      "error"
+    );
+    photoInput.value = "";
+    return;
+  }
+
+  if (!currentUser || uploadInProgress) {
+    photoInput.value = "";
+    return;
+  }
+
+  uploadInProgress = true;
+  choosePhotoBtn.disabled = true;
+  choosePhotoBtn.textContent = "Uploading...";
+
+  try {
+    const formData = new FormData();
+
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      {
+        method: "POST",
+        body: formData
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error("Cloudinary upload error:", result);
+
+      throw new Error(
+        result.error?.message ||
+        "Cloudinary could not upload this picture."
+      );
+    }
+
+    if (!result.secure_url) {
+      throw new Error("Cloudinary did not return an image URL.");
+    }
+
+    const photoURL = result.secure_url;
+
+    // Save the image URL without deleting other profile fields.
+    const userRef = doc(db, "users", currentUser.uid);
+
+    await setDoc(userRef, {
+      photoURL: photoURL,
+      updatedAt: serverTimestamp()
+    }, {
+      merge: true
+    });
+
+    // Update Firebase Authentication's display profile too.
+    await updateProfile(currentUser, {
+      photoURL: photoURL
+    });
+
+    const currentName =
+      document.getElementById("fullName").value.trim() ||
+      currentUser.displayName ||
+      "";
+
+    updateAvatar(currentName, photoURL);
+
+    showMessage(
+      "Your profile picture has been uploaded and saved successfully!",
+      "success"
+    );
+
+  } catch (error) {
+    console.error("Profile picture upload error:", error);
+
+    showMessage(
+      error.message ||
+      "Unable to upload your picture. Please try again.",
+      "error"
+    );
+
+  } finally {
+    uploadInProgress = false;
+    choosePhotoBtn.disabled = false;
+    choosePhotoBtn.textContent = "Change profile picture";
+    photoInput.value = "";
+  }
+});
+
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!currentUser) {
@@ -414,11 +635,21 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  const fullName = document.getElementById("fullName").value.trim();
+  if (uploadInProgress) {
+    showMessage(
+      "Please wait for your picture upload to finish.",
+      "error"
+    );
+    return;
+  }
 
-  const username = document.getElementById("username")
-    .value.trim()
-    .toLowerCase();
+  const fullName =
+    document.getElementById("fullName").value.trim();
+
+  const username =
+    document.getElementById("username")
+      .value.trim()
+      .toLowerCase();
 
   if (fullName.length < 2) {
     showMessage("Please enter your full name.", "error");
@@ -437,11 +668,9 @@ form.addEventListener("submit", async (event) => {
   saveBtn.textContent = "Saving...";
 
   try {
-
     const userRef = doc(db, "users", currentUser.uid);
 
-    // Save basic profile information.
-    // Username uniqueness will be implemented separately.
+    // Merge preserves the existing photoURL field.
     await setDoc(userRef, {
       uid: currentUser.uid,
       fullName: fullName,
@@ -458,14 +687,15 @@ form.addEventListener("submit", async (event) => {
 
     originalUsername = username;
 
-    document.getElementById("displayName").textContent = fullName;
+    document.getElementById("displayName").textContent =
+      fullName;
 
-    updateAvatar(fullName);
-
-    showMessage("Your profile has been updated successfully.", "success");
+    showMessage(
+      "Your profile has been updated successfully.",
+      "success"
+    );
 
   } catch (error) {
-
     console.error("Profile update error:", error);
 
     showMessage(
@@ -474,27 +704,27 @@ form.addEventListener("submit", async (event) => {
     );
 
   } finally {
-
     saveBtn.disabled = false;
     saveBtn.textContent = "Save Changes";
-
   }
 });
 
-document.getElementById("logoutBtn").addEventListener("click", async () => {
+document.getElementById("logoutBtn")
+  .addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+      window.location.replace("login.html");
 
-  try {
-    await signOut(auth);
-    window.location.replace("login.html");
+    } catch (error) {
+      console.error("Logout error:", error);
 
-  } catch (error) {
-    console.error("Logout error:", error);
-
-    showMessage("Unable to log out. Please try again.", "error");
-  }
-});
+      showMessage(
+        "Unable to log out. Please try again.",
+        "error"
+      );
+    }
+  });
 </script>
 
 </body>
-          </html>
-
+</html>
