@@ -109,6 +109,15 @@
       border-radius: 50%;
     }
 
+    .avatar.has-photo {
+      cursor: pointer;
+    }
+
+    .avatar.has-photo:focus-visible {
+      outline: 2px solid #8fc2ff;
+      outline-offset: 3px;
+    }
+
     .contact-info {
       flex: 1;
       min-width: 0;
@@ -283,6 +292,59 @@
       min-width: 70px;
     }
 
+    /* Enlarged profile picture viewer */
+    #photoViewer {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      padding: 65px 18px 28px;
+      padding-top: max(65px, env(safe-area-inset-top));
+      padding-bottom: max(28px, env(safe-area-inset-bottom));
+      background: rgba(0, 0, 0, 0.94);
+    }
+
+    #photoViewer[hidden] {
+      display: none !important;
+    }
+
+    #closePhotoViewer {
+      position: absolute;
+      top: max(16px, env(safe-area-inset-top));
+      right: 16px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      padding: 0;
+      background: #263b56;
+      color: white;
+      font-size: 22px;
+    }
+
+    #enlargedPhoto {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 75vh;
+      max-height: 75dvh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 8px 35px rgba(0, 0, 0, 0.45);
+    }
+
+    #enlargedPhotoName {
+      color: #f1f5fb;
+      font-size: 16px;
+      text-align: center;
+      overflow-wrap: anywhere;
+      max-width: 100%;
+    }
+
     [hidden] {
       display: none !important;
     }
@@ -300,6 +362,11 @@
 
       #chatScreen {
         min-height: 0;
+      }
+
+      #enlargedPhoto {
+        max-height: 78vh;
+        max-height: 78dvh;
       }
     }
   </style>
@@ -353,6 +420,18 @@
     </section>
   </main>
 
+  <!-- Enlarged profile picture viewer -->
+  <div id="photoViewer" hidden>
+    <button
+      type="button"
+      id="closePhotoViewer"
+      aria-label="Close enlarged profile picture"
+    >✕</button>
+
+    <img id="enlargedPhoto" src="" alt="Enlarged profile picture">
+    <p id="enlargedPhotoName"></p>
+  </div>
+
   <script type="module">
     import { auth, db } from "./firebase.js";
 
@@ -389,6 +468,11 @@
     const chatAvatar = document.getElementById("chatAvatar");
     const backToContacts = document.getElementById("backToContacts");
 
+    const photoViewer = document.getElementById("photoViewer");
+    const enlargedPhoto = document.getElementById("enlargedPhoto");
+    const enlargedPhotoName = document.getElementById("enlargedPhotoName");
+    const closePhotoViewer = document.getElementById("closePhotoViewer");
+
     const requestedUserId = new URLSearchParams(
       window.location.search
     ).get("with");
@@ -415,9 +499,48 @@
       container.appendChild(paragraph);
     }
 
+    function openPhotoViewer(name, photoURL) {
+      if (!photoURL) return;
+
+      enlargedPhoto.src = photoURL;
+      enlargedPhoto.alt = name + "'s profile picture";
+      enlargedPhotoName.textContent = name;
+
+      photoViewer.hidden = false;
+      closePhotoViewer.focus();
+    }
+
+    function closePhoto() {
+      photoViewer.hidden = true;
+      enlargedPhoto.removeAttribute("src");
+    }
+
+    closePhotoViewer.addEventListener("click", closePhoto);
+
+    photoViewer.addEventListener("click", event => {
+      if (event.target === photoViewer) {
+        closePhoto();
+      }
+    });
+
+    enlargedPhoto.addEventListener("error", () => {
+      closePhoto();
+      showStatus("Unable to open this profile picture.");
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !photoViewer.hidden) {
+        closePhoto();
+      }
+    });
+
     // Display a profile picture, or the person's initial if unavailable.
     function setAvatar(element, name, photoURL) {
       element.replaceChildren();
+      element.classList.remove("has-photo");
+      element.removeAttribute("role");
+      element.removeAttribute("tabindex");
+      element.removeAttribute("aria-label");
 
       const initial = (name || "U").trim().charAt(0).toUpperCase() || "U";
 
@@ -430,11 +553,30 @@
         image.addEventListener("error", () => {
           element.replaceChildren();
           element.textContent = initial;
+          element.classList.remove("has-photo");
+          element.removeAttribute("role");
+          element.removeAttribute("tabindex");
+          element.removeAttribute("aria-label");
         }, { once: true });
 
         element.appendChild(image);
+        element.classList.add("has-photo");
+        element.setAttribute("role", "button");
+        element.setAttribute("tabindex", "0");
+        element.setAttribute("aria-label", "View " + name + "'s profile picture");
+
+        element.onclick = () => openPhotoViewer(name, photoURL);
+
+        element.onkeydown = event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openPhotoViewer(name, photoURL);
+          }
+        };
       } else {
         element.textContent = initial;
+        element.onclick = null;
+        element.onkeydown = null;
       }
     }
 
@@ -632,7 +774,6 @@
         const userData = userSnapshot.data();
         const name = userData.fullName || userData.username || "User";
 
-        // Read the contact's saved photoURL from Firestore.
         otherUserPhotoURL = userData.photoURL || "";
 
         chatName.textContent = name;
@@ -661,8 +802,7 @@
         stopMessagesListener = onSnapshot(
           messagesQuery,
           snapshot => {
-            // Ignore results from a chat that has since been closed.
-            if (!chatReady && !conversationId) return;
+            if (!conversationId || otherUserId !== uid) return;
 
             messagesBox.replaceChildren();
 
@@ -682,121 +822,4 @@
               content.textContent = messageData.text || "";
 
               const time = document.createElement("span");
-              time.className = "message-time";
-
-              if (messageData.createdAt && messageData.createdAt.toDate) {
-                time.textContent =
-                  messageData.createdAt.toDate().toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  });
-              } else {
-                time.textContent = "Sending...";
-              }
-
-              message.append(content, time);
-
-              if (isSent) {
-                messagesBox.appendChild(message);
-              } else {
-                // Show the other person's profile picture beside received messages.
-                const row = document.createElement("div");
-                row.className = "message-row received-row";
-
-                const avatar = document.createElement("div");
-                avatar.className = "avatar message-avatar";
-                setAvatar(avatar, name, otherUserPhotoURL);
-
-                row.append(avatar, message);
-                messagesBox.appendChild(row);
-              }
-            });
-
-            messagesBox.scrollTop = messagesBox.scrollHeight;
-          },
-          error => {
-            console.error("Message listener error:", error);
-            showStatus("Unable to load messages. Check Firestore permissions.");
-          }
-        );
-
-        chatReady = true;
-        messageForm.hidden = false;
-        showStatus("Chat connected.");
-      } catch (error) {
-        console.error("Chat opening error:", error);
-        showStatus("Could not open chat: " + error.message);
-      }
-    }
-
-    backToContacts.addEventListener("click", () => {
-      showContactList();
-    });
-
-    messageForm.addEventListener("submit", async event => {
-      event.preventDefault();
-
-      const text = messageInput.value.trim();
-
-      if (!text || !conversationId || !chatReady || sending) {
-        return;
-      }
-
-      sending = true;
-      sendButton.disabled = true;
-
-      try {
-        const messagesRef = collection(
-          db,
-          "conversations",
-          conversationId,
-          "messages"
-        );
-
-        await addDoc(messagesRef, {
-          text,
-          senderId: currentUser.uid,
-          createdAt: serverTimestamp()
-        });
-
-        await setDoc(
-          doc(db, "conversations", conversationId),
-          { updatedAt: serverTimestamp() },
-          { merge: true }
-        );
-
-        messageInput.value = "";
-        showStatus("Message sent.");
-        messageInput.focus();
-      } catch (error) {
-        console.error("Message sending error:", error);
-        showStatus("Message not sent: " + error.message);
-      } finally {
-        sending = false;
-        sendButton.disabled = false;
-      }
-    });
-
-    onAuthStateChanged(auth, user => {
-      if (!user) {
-        window.location.replace("login.html");
-        return;
-      }
-
-      currentUser = user;
-
-      if (requestedUserId) {
-        openChat(requestedUserId);
-      } else {
-        showContactList();
-      }
-    });
-
-    window.addEventListener("pagehide", () => {
-      if (stopMessagesListener) {
-        stopMessagesListener();
-      }
-    });
-  </script>
-</body>
-</html>
+              time.className = "message-time"
