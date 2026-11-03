@@ -936,4 +936,244 @@ async function openChat(uid) {
 }
 
 /* Send text messages */
-messageForm.addEventListener("submit", async event
+messageForm.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const text = messageInput.value.trim();
+
+  if (!text || !currentUser || !conversationId || !otherUserId || sending) {
+    return;
+  }
+
+  sending = true;
+  sendButton.disabled = true;
+
+  try {
+    const activeConversation = conversationId;
+
+    await addDoc(
+      collection(db, "conversations", activeConversation, "messages"),
+      {
+        text: text,
+        type: "text",
+        senderId: currentUser.uid,
+        createdAt: serverTimestamp()
+      }
+    );
+
+    messageInput.value = "";
+    showStatus("Message sent.");
+  } catch (error) {
+    console.error("Send message error:", error);
+    showStatus(
+      "Message not sent: " +
+      (error.code || error.message || "Please try again.")
+    );
+  } finally {
+    sending = false;
+    sendButton.disabled = false;
+    messageInput.focus();
+  }
+});
+
+
+/* Upload pictures and audio to Cloudinary */
+
+async function uploadToCloudinary(file, kind) {
+  const resourceType = kind === "image" ? "image" : "video";
+
+  const uploadURL =
+    "https://api.cloudinary.com/v1_1/ewzaj6yw/" +
+    resourceType +
+    "/upload";
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "simplexping_chat_media");
+
+  const response = await fetch(uploadURL, {
+    method: "POST",
+    body: formData
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.secure_url) {
+    throw new Error(
+      result.error?.message || "Media upload failed."
+    );
+  }
+
+  return result.secure_url;
+}
+
+
+/* Send a picture or audio file */
+
+async function sendMedia(file, kind) {
+  if (!file || !currentUser || !conversationId || !otherUserId) {
+    showStatus("Please open a conversation first.");
+    return;
+  }
+
+  if (kind === "image" && !file.type.startsWith("image/")) {
+    showStatus("Please select a valid picture.");
+    return;
+  }
+
+  if (kind === "audio" && !file.type.startsWith("audio/")) {
+    showStatus("Please select a valid audio file.");
+    return;
+  }
+
+  const maxSize = kind === "image"
+    ? 5 * 1024 * 1024
+    : 10 * 1024 * 1024;
+
+  if (file.size > maxSize) {
+    showStatus(
+      kind === "image"
+        ? "Picture is too large. Maximum size is 5 MB."
+        : "Audio is too large. Maximum size is 10 MB."
+    );
+    return;
+  }
+
+  photoButton.disabled = true;
+  audioButton.disabled = true;
+  sendButton.disabled = true;
+
+  showStatus(
+    kind === "image"
+      ? "Uploading picture..."
+      : "Uploading audio..."
+  );
+
+  try {
+    const activeConversation = conversationId;
+    const activeContact = otherUserId;
+
+    const mediaUrl = await uploadToCloudinary(file, kind);
+
+    if (
+      conversationId !== activeConversation ||
+      otherUserId !== activeContact
+    ) {
+      showStatus("Upload finished, but the conversation has changed.");
+      return;
+    }
+
+    await addDoc(
+      collection(db, "conversations", activeConversation, "messages"),
+      {
+        text: "",
+        type: kind,
+        mediaUrl: mediaUrl,
+        fileName: file.name,
+        fileSize: file.size,
+        senderId: currentUser.uid,
+        createdAt: serverTimestamp()
+      }
+    );
+
+    showStatus(
+      kind === "image"
+        ? "Picture sent successfully."
+        : "Audio sent successfully."
+    );
+
+  } catch (error) {
+    console.error("Media send error:", error);
+    showStatus(
+      "Media not sent: " +
+      (error.message || "Please try again.")
+    );
+  } finally {
+    photoButton.disabled = false;
+    audioButton.disabled = false;
+    sendButton.disabled = false;
+    photoInput.value = "";
+    audioInput.value = "";
+  }
+}
+
+
+/* Choose a picture or audio file */
+
+photoButton.addEventListener("click", () => {
+  photoInput.click();
+});
+
+audioButton.addEventListener("click", () => {
+  audioInput.click();
+});
+
+photoInput.addEventListener("change", async () => {
+  const file = photoInput.files?.[0];
+  if (file) {
+    await sendMedia(file, "image");
+  }
+});
+
+audioInput.addEventListener("change", async () => {
+  const file = audioInput.files?.[0];
+  if (file) {
+    await sendMedia(file, "audio");
+  }
+});
+
+
+/* Return to the contacts list */
+
+$("backToContacts").addEventListener("click", () => {
+  stopChatListener();
+
+  conversationId = null;
+  otherUserId = null;
+
+  chatScreen.style.display = "none";
+  contactList.style.display = "flex";
+
+  $("pageTitle").textContent = "My Messages";
+  $("pageSubtitle").textContent =
+    "Select an accepted contact to start chatting.";
+
+  messageForm.hidden = true;
+  attachmentButtons.hidden = true;
+  mediaHelp.hidden = true;
+
+  loadContacts();
+});
+
+
+/* Check the signed-in user */
+
+onAuthStateChanged(
+  auth,
+  async user => {
+    if (!user) {
+      showStatus("Please log in first. Redirecting...");
+      location.href = "login.html";
+      return;
+    }
+
+    currentUser = user;
+
+    if (requestedUserId) {
+      await openChat(requestedUserId);
+    } else {
+      await loadContacts();
+    }
+  },
+  error => {
+    console.error("Authentication error:", error);
+
+    showStatus(
+      "Sign-in connection failed: " +
+      (error.code || error.message || "Please refresh and log in again.")
+    );
+  }
+);
+</script>
+</body>
+</html>
