@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B1424">
 <title>Dashboard | SIMPLEXPING</title>
 
 <style>
@@ -21,19 +22,21 @@ body {
 }
 
 header {
-  height: 75px;
+  min-height: 75px;
   padding: 0 6%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #111E32;
   border-bottom: 1px solid #263750;
+  gap: 12px;
 }
 
 .brand {
   font-size: 22px;
   font-weight: bold;
   letter-spacing: 1px;
+  white-space: nowrap;
 }
 
 .brand span {
@@ -46,15 +49,33 @@ header {
   gap: 15px;
 }
 
-.user-initial {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: #3978D5;
+/* Clickable profile picture */
+.profile-link {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #3978D5;
+  color: #fff;
+  text-decoration: none;
   font-weight: bold;
+  border: 2px solid #49617F;
+}
+
+.profile-link:focus-visible {
+  outline: 3px solid #69A5FA;
+  outline-offset: 3px;
+}
+
+.profile-link img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .logout-btn {
@@ -68,6 +89,11 @@ header {
 
 .logout-btn:hover {
   background: #263750;
+}
+
+.logout-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .container {
@@ -113,7 +139,7 @@ header {
   min-height: 155px;
   text-decoration: none;
   color: #EDF3FC;
-  transition: .2s;
+  transition: 0.2s;
 }
 
 .dashboard-card:hover {
@@ -185,6 +211,7 @@ footer {
   color: #FFB9C3;
   text-align: center;
   padding: 20px;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 600px) {
@@ -194,6 +221,15 @@ footer {
 
   .brand {
     font-size: 18px;
+  }
+
+  .header-right {
+    gap: 10px;
+  }
+
+  .profile-link {
+    width: 40px;
+    height: 40px;
   }
 
   .container {
@@ -219,7 +255,7 @@ footer {
 <body>
 
 <div id="loading">Loading your SIMPLEXPING dashboard...</div>
-<div id="error"></div>
+<div id="error" role="alert"></div>
 
 <div id="dashboard" style="display:none;">
 
@@ -227,8 +263,19 @@ footer {
   <div class="brand">SIMPLEX<span>PING</span></div>
 
   <div class="header-right">
-    <div class="user-initial" id="userInitial">S</div>
-    <button class="logout-btn" id="logoutBtn">Log out</button>
+    <a
+      class="profile-link"
+      id="profileLink"
+      href="profile.html"
+      aria-label="Open your profile"
+      title="My Profile"
+    >
+      <span id="userInitial">S</span>
+    </a>
+
+    <button class="logout-btn" id="logoutBtn" type="button">
+      Log out
+    </button>
   </div>
 </header>
 
@@ -276,9 +323,20 @@ footer {
     <h3>My Account</h3>
 
     <div class="account-info">
-      <div><strong>Name:</strong> <span id="accountName">Loading...</span></div>
-      <div><strong>Email:</strong> <span id="accountEmail">Loading...</span></div>
-      <div><strong>Account ID:</strong> <span id="accountId">Loading...</span></div>
+      <div>
+        <strong>Name:</strong>
+        <span id="accountName">Loading...</span>
+      </div>
+
+      <div>
+        <strong>Email:</strong>
+        <span id="accountEmail">Loading...</span>
+      </div>
+
+      <div>
+        <strong>Account ID:</strong>
+        <span id="accountId">Loading...</span>
+      </div>
     </div>
   </section>
 
@@ -308,6 +366,44 @@ const loading = document.getElementById("loading");
 const dashboard = document.getElementById("dashboard");
 const errorBox = document.getElementById("error");
 const logoutBtn = document.getElementById("logoutBtn");
+const profileLink = document.getElementById("profileLink");
+const userInitial = document.getElementById("userInitial");
+
+function showInitial(initial) {
+  userInitial.textContent =
+    (initial || "U").trim().charAt(0).toUpperCase() || "U";
+
+  userInitial.style.display = "flex";
+
+  const oldImage = profileLink.querySelector("img");
+
+  if (oldImage) {
+    oldImage.remove();
+  }
+}
+
+function showProfilePhoto(photoURL, initial) {
+  showInitial(initial);
+
+  if (!photoURL) {
+    return;
+  }
+
+  const image = document.createElement("img");
+  image.alt = "Your profile picture";
+  image.src = photoURL;
+
+  image.addEventListener("error", () => {
+    image.remove();
+    userInitial.style.display = "flex";
+  }, { once: true });
+
+  image.addEventListener("load", () => {
+    userInitial.style.display = "none";
+  }, { once: true });
+
+  profileLink.appendChild(image);
+}
 
 onAuthStateChanged(auth, async (user) => {
 
@@ -319,22 +415,33 @@ onAuthStateChanged(auth, async (user) => {
   try {
 
     let fullName = user.displayName || "User";
+    let photoURL = user.photoURL || "";
 
-    const profileRef = doc(db, "users", user.uid);
-    const profileSnapshot = await getDoc(profileRef);
+    const profileSnapshot = await getDoc(
+      doc(db, "users", user.uid)
+    );
 
     if (profileSnapshot.exists()) {
       const profile = profileSnapshot.data();
-      fullName = profile.fullName || fullName;
+
+      fullName =
+        profile.fullName ||
+        profile.username ||
+        fullName;
+
+      photoURL =
+        profile.photoURL ||
+        photoURL;
     }
 
     document.getElementById("userName").textContent = fullName;
     document.getElementById("accountName").textContent = fullName;
-    document.getElementById("accountEmail").textContent = user.email || "Not available";
+    document.getElementById("accountEmail").textContent =
+      user.email || "Not available";
+
     document.getElementById("accountId").textContent = user.uid;
 
-    document.getElementById("userInitial").textContent =
-      fullName.charAt(0).toUpperCase();
+    showProfilePhoto(photoURL, fullName);
 
     loading.style.display = "none";
     dashboard.style.display = "block";
@@ -345,6 +452,7 @@ onAuthStateChanged(auth, async (user) => {
 
     loading.style.display = "none";
     errorBox.style.display = "block";
+
     errorBox.textContent =
       "We could not load your account information. Please refresh the page. Error: " +
       (error.code || error.message);
@@ -359,14 +467,19 @@ logoutBtn.addEventListener("click", async () => {
   logoutBtn.textContent = "Logging out...";
 
   try {
+
     await signOut(auth);
     window.location.replace("login.html");
 
   } catch (error) {
+
     console.error("Logout error:", error);
+
     alert("Unable to log out. Please try again.");
+
     logoutBtn.disabled = false;
     logoutBtn.textContent = "Log out";
+
   }
 
 });
@@ -374,5 +487,4 @@ logoutBtn.addEventListener("click", async () => {
 </script>
 
 </body>
-  </html>
-
+</html>
