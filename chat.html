@@ -216,20 +216,29 @@ button:disabled {
   text-align: right;
 }
 
-.message-image {
+.message-image,
+.message-video {
   display: block;
   max-width: 100%;
   max-height: 350px;
   width: auto;
   height: auto;
   border-radius: 9px;
-  cursor: pointer;
   object-fit: contain;
+}
+
+.message-image {
+  cursor: pointer;
+}
+
+.message-video {
+  width: 280px;
+  max-width: 100%;
 }
 
 .message-audio {
   display: block;
-  width: min(270px, 100%);
+  width: 270px;
   max-width: 100%;
   margin-top: 5px;
 }
@@ -267,6 +276,7 @@ button:disabled {
 
 #attachmentButtons {
   display: flex;
+  flex-wrap: wrap;
   gap: 7px;
   padding: 10px 12px;
   background: #142640;
@@ -373,6 +383,7 @@ button:disabled {
     <a href="dashboard.html" class="back" aria-label="Back to dashboard">‹</a>
     <h1 id="pageTitle">My Messages</h1>
   </div>
+
   <p class="subtitle" id="pageSubtitle">
     Select an accepted contact to start chatting.
   </p>
@@ -386,7 +397,9 @@ button:disabled {
 
   <div class="chat-header">
     <button type="button" id="backToContacts">‹</button>
+
     <div class="avatar" id="chatAvatar">?</div>
+
     <div>
       <h3 id="chatName">Contact</h3>
       <p>SIMPLEXPING member</p>
@@ -405,11 +418,17 @@ button:disabled {
     <button type="button" class="attach-button" id="audioButton">
       🎵 Audio
     </button>
+
+    <button type="button" class="attach-button" id="videoButton">
+      🎬 Video
+    </button>
   </div>
 
   <p id="mediaHelp" hidden>
     Photos: JPG, PNG or WebP, up to 5 MB.
-    Audio: MP3, M4A, WAV or WebM, up to 10 MB.
+    Audio: up to 10 MB.
+    Videos: up to 20 MB.
+    Uploads are subject to Cloudinary limits.
   </p>
 
   <input
@@ -426,6 +445,13 @@ button:disabled {
     hidden
   >
 
+  <input
+    type="file"
+    id="videoInput"
+    accept="video/*"
+    hidden
+  >
+
   <form id="messageForm" hidden>
     <input
       type="text"
@@ -435,6 +461,7 @@ button:disabled {
       autocomplete="off"
       enterkeyhint="send"
     >
+
     <button type="submit" id="sendButton">Send</button>
   </form>
 
@@ -448,169 +475,7 @@ button:disabled {
 </div>
 
 <script type="module">
-
-import { auth, db } from "./firebase.js";
-
-import {
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
-import {
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  collection,
-  addDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  onSnapshot,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-/* Cloudinary settings */
-const CLOUDINARY_CLOUD_NAME = "ewzaj6yw";
-const CLOUDINARY_UPLOAD_PRESET = "simplexping_chat_media";
-
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
-
-const $ = id => document.getElementById(id);
-
-const contactList = $("contactList");
-const chatScreen = $("chatScreen");
-const messagesBox = $("messages");
-const messageForm = $("messageForm");
-const messageInput = $("messageInput");
-const sendButton = $("sendButton");
-const statusText = $("status");
-const photoViewer = $("photoViewer");
-const enlargedPhoto = $("enlargedPhoto");
-const attachmentButtons = $("attachmentButtons");
-const mediaHelp = $("mediaHelp");
-const photoInput = $("photoInput");
-const audioInput = $("audioInput");
-const photoButton = $("photoButton");
-const audioButton = $("audioButton");
-const backButton = $("backToContacts");
-
-const requestedUserId =
-  new URLSearchParams(location.search).get("with");
-
-let currentUser = null;
-let conversationId = null;
-let otherUserId = null;
-let stopMessagesListener = null;
-let sending = false;
-let uploadingMedia = false;
-
-function showStatus(text) {
-  statusText.textContent = text;
-}
-
-function showEmpty(container, text, linkText = "", linkHref = "") {
-  container.replaceChildren();
-
-  const p = document.createElement("p");
-  p.className = "empty";
-  p.textContent = text;
-
-  if (linkText && linkHref) {
-    const a = document.createElement("a");
-    a.href = linkHref;
-    a.textContent = linkText;
-    p.append(document.createElement("br"), a);
-  }
-
-  container.appendChild(p);
-}
-
-function openPhoto(name, url) {
-  if (!url) return;
-
-  $("enlargedPhotoName").textContent = name;
-  enlargedPhoto.alt = name;
-  enlargedPhoto.src = url;
-  photoViewer.hidden = false;
-  $("closePhotoViewer").focus();
-}
-
-function closePhoto() {
-  photoViewer.hidden = true;
-  enlargedPhoto.removeAttribute("src");
-}
-
-$("closePhotoViewer").addEventListener("click", closePhoto);
-
-photoViewer.addEventListener("click", event => {
-  if (event.target === photoViewer) closePhoto();
-});
-
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && !photoViewer.hidden) {
-    closePhoto();
-  }
-});
-
-enlargedPhoto.addEventListener("error", () => {
-  closePhoto();
-  showStatus("Unable to open this picture.");
-});
-
-function setAvatar(element, name, photoURL) {
-  element.replaceChildren();
-  element.classList.remove("has-photo");
-  element.onclick = null;
-  element.onkeydown = null;
-
-  const initial =
-    (name || "U").trim().charAt(0).toUpperCase() || "U";
-
-  if (!photoURL) {
-    element.textContent = initial;
-    element.removeAttribute("role");
-    element.removeAttribute("tabindex");
-    return;
-  }
-
-  const img = document.createElement("img");
-  img.src = photoURL;
-  img.alt = name + "'s profile picture";
-
-  img.onerror = () => {
-    element.replaceChildren();
-    element.textContent = initial;
-    element.classList.remove("has-photo");
-    element.onclick = null;
-    element.onkeydown = null;
-  };
-
-  element.appendChild(img);
-  element.classList.add("has-photo");
-  element.setAttribute("role", "button");
-  element.setAttribute("tabindex", "0");
-  element.setAttribute("aria-label", "View " + name + "'s profile picture");
-
-  element.onclick = () => openPhoto(name + "'s profile picture", photoURL);
-
-  element.onkeydown = event => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      openPhoto(name + "'s profile picture", photoURL);
-    }
-  };
-}
-
-function stopChatListener() {
-  if (stopMessagesListener) {
-    stopMessagesListener();
-    stopMessagesListener = null;
-  }
-}
-
-/* Load accepted contacts */
+  /* Load accepted contacts */
 async function loadContacts() {
   contactList.replaceChildren();
   showStatus("Loading your accepted contacts...");
@@ -626,7 +491,6 @@ async function loadContacts() {
 
     snapshot.forEach(item => {
       const participants = item.data().participants || [];
-
       participants.forEach(uid => {
         if (uid !== currentUser.uid) ids.add(uid);
       });
@@ -639,7 +503,6 @@ async function loadContacts() {
         "Find people in Contacts",
         "contacts.html"
       );
-
       showStatus("No accepted contacts yet.");
       return;
     }
@@ -649,7 +512,6 @@ async function loadContacts() {
     for (const uid of ids) {
       try {
         const userSnap = await getDoc(doc(db, "users", uid));
-
         if (!userSnap.exists()) continue;
 
         const data = userSnap.data();
@@ -681,7 +543,6 @@ async function loadContacts() {
 
         card.append(avatar, info, button);
         contactList.appendChild(card);
-
         displayed++;
       } catch (error) {
         console.error("Could not load contact:", error);
@@ -694,15 +555,12 @@ async function loadContacts() {
     } else {
       showStatus(displayed + " accepted contact(s).");
     }
-
   } catch (error) {
     console.error("Contact list error:", error);
-
     showStatus(
       "Unable to load contacts: " +
       (error.code || error.message || "Please try again.")
     );
-
     showEmpty(
       contactList,
       "Could not load your contacts. Check your connection and refresh."
@@ -732,7 +590,6 @@ async function openChat(uid) {
   }
 
   stopChatListener();
-
   otherUserId = uid;
   conversationId = null;
 
@@ -754,12 +611,10 @@ async function openChat(uid) {
 
     if (!(await checkAcceptedContact(uid))) {
       showStatus("This person is not an accepted contact.");
-
       showEmpty(
         messagesBox,
         "Return to contacts and select an accepted contact."
       );
-
       return;
     }
 
@@ -774,12 +629,7 @@ async function openChat(uid) {
     const name = userData.fullName || userData.username || "User";
 
     $("chatName").textContent = name;
-
-    setAvatar(
-      $("chatAvatar"),
-      name,
-      userData.photoURL || ""
-    );
+    setAvatar($("chatAvatar"), name, userData.photoURL || "");
 
     const members = [currentUser.uid, uid].sort();
     conversationId = members.join("_");
@@ -812,9 +662,7 @@ async function openChat(uid) {
         if (
           conversationId !== activeConversation ||
           otherUserId !== uid
-        ) {
-          return;
-        }
+        ) return;
 
         messagesBox.replaceChildren();
 
@@ -829,7 +677,6 @@ async function openChat(uid) {
             bubble.className =
               "message " + (isSent ? "sent" : "received");
 
-            /* Image message */
             if (data.type === "image" && data.mediaUrl) {
               if (data.text) {
                 const caption = document.createElement("div");
@@ -859,7 +706,6 @@ async function openChat(uid) {
 
               bubble.appendChild(img);
 
-            /* Audio message */
             } else if (data.type === "audio" && data.mediaUrl) {
               if (data.text) {
                 const caption = document.createElement("div");
@@ -880,7 +726,6 @@ async function openChat(uid) {
 
               bubble.appendChild(audio);
 
-            /* Existing text messages */
             } else {
               const content = document.createElement("div");
               content.textContent = data.text || "";
@@ -912,7 +757,6 @@ async function openChat(uid) {
       },
       error => {
         console.error("Messages listener error:", error);
-
         showStatus(
           "Unable to load messages: " +
           (error.code || error.message || "Please try again.")
@@ -922,12 +766,10 @@ async function openChat(uid) {
 
   } catch (error) {
     console.error("Open chat error:", error);
-
     showStatus(
       "Could not open chat: " +
       (error.code || error.message || "Please try again.")
     );
-
     showEmpty(
       messagesBox,
       "The conversation could not be opened. Return to contacts and try again."
@@ -941,9 +783,10 @@ messageForm.addEventListener("submit", async event => {
 
   const text = messageInput.value.trim();
 
-  if (!text || !currentUser || !conversationId || !otherUserId || sending) {
-    return;
-  }
+  if (
+    !text || !currentUser || !conversationId ||
+    !otherUserId || sending
+  ) return;
 
   sending = true;
   sendButton.disabled = true;
@@ -954,7 +797,7 @@ messageForm.addEventListener("submit", async event => {
     await addDoc(
       collection(db, "conversations", activeConversation, "messages"),
       {
-        text: text,
+        text,
         type: "text",
         senderId: currentUser.uid,
         createdAt: serverTimestamp()
@@ -976,20 +819,18 @@ messageForm.addEventListener("submit", async event => {
   }
 });
 
-
 /* Upload pictures and audio to Cloudinary */
-
 async function uploadToCloudinary(file, kind) {
   const resourceType = kind === "image" ? "image" : "video";
 
   const uploadURL =
-    "https://api.cloudinary.com/v1_1/ewzaj6yw/" +
-    resourceType +
-    "/upload";
+    "https://api.cloudinary.com/v1_1/" +
+    CLOUDINARY_CLOUD_NAME +
+    "/" + resourceType + "/upload";
 
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", "simplexping_chat_media");
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
   const response = await fetch(uploadURL, {
     method: "POST",
@@ -1007,9 +848,7 @@ async function uploadToCloudinary(file, kind) {
   return result.secure_url;
 }
 
-
 /* Send a picture or audio file */
-
 async function sendMedia(file, kind) {
   if (!file || !currentUser || !conversationId || !otherUserId) {
     showStatus("Please open a conversation first.");
@@ -1027,8 +866,8 @@ async function sendMedia(file, kind) {
   }
 
   const maxSize = kind === "image"
-    ? 5 * 1024 * 1024
-    : 10 * 1024 * 1024;
+    ? MAX_IMAGE_SIZE
+    : MAX_AUDIO_SIZE;
 
   if (file.size > maxSize) {
     showStatus(
@@ -1039,14 +878,18 @@ async function sendMedia(file, kind) {
     return;
   }
 
+  if (uploadingMedia) {
+    showStatus("Please wait for the current upload to finish.");
+    return;
+  }
+
+  uploadingMedia = true;
   photoButton.disabled = true;
   audioButton.disabled = true;
   sendButton.disabled = true;
 
   showStatus(
-    kind === "image"
-      ? "Uploading picture..."
-      : "Uploading audio..."
+    kind === "image" ? "Uploading picture..." : "Uploading audio..."
   );
 
   try {
@@ -1068,7 +911,7 @@ async function sendMedia(file, kind) {
       {
         text: "",
         type: kind,
-        mediaUrl: mediaUrl,
+        mediaUrl,
         fileName: file.name,
         fileSize: file.size,
         senderId: currentUser.uid,
@@ -1089,6 +932,7 @@ async function sendMedia(file, kind) {
       (error.message || "Please try again.")
     );
   } finally {
+    uploadingMedia = false;
     photoButton.disabled = false;
     audioButton.disabled = false;
     sendButton.disabled = false;
@@ -1097,35 +941,22 @@ async function sendMedia(file, kind) {
   }
 }
 
-
 /* Choose a picture or audio file */
-
-photoButton.addEventListener("click", () => {
-  photoInput.click();
-});
-
-audioButton.addEventListener("click", () => {
-  audioInput.click();
-});
+photoButton.addEventListener("click", () => photoInput.click());
+audioButton.addEventListener("click", () => audioInput.click());
 
 photoInput.addEventListener("change", async () => {
   const file = photoInput.files?.[0];
-  if (file) {
-    await sendMedia(file, "image");
-  }
+  if (file) await sendMedia(file, "image");
 });
 
 audioInput.addEventListener("change", async () => {
   const file = audioInput.files?.[0];
-  if (file) {
-    await sendMedia(file, "audio");
-  }
+  if (file) await sendMedia(file, "audio");
 });
 
-
-/* Return to the contacts list */
-
-$("backToContacts").addEventListener("click", () => {
+/* Return to contacts */
+backButton.addEventListener("click", () => {
   stopChatListener();
 
   conversationId = null;
@@ -1145,9 +976,7 @@ $("backToContacts").addEventListener("click", () => {
   loadContacts();
 });
 
-
 /* Check the signed-in user */
-
 onAuthStateChanged(
   auth,
   async user => {
@@ -1167,13 +996,13 @@ onAuthStateChanged(
   },
   error => {
     console.error("Authentication error:", error);
-
     showStatus(
       "Sign-in connection failed: " +
       (error.code || error.message || "Please refresh and log in again.")
     );
   }
 );
+
 </script>
 </body>
 </html>
