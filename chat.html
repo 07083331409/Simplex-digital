@@ -8,818 +8,459 @@
   <title>SIMPLEXPING | Messages</title>
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
-
-    body {
-      background: #091426;
-      color: #f1f5fb;
-      min-height: 100vh;
-      min-height: 100dvh;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 850px;
-      min-height: 100vh;
-      min-height: 100dvh;
-      margin: auto;
-      background: #101f35;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      padding: 18px;
-      padding-top: max(18px, env(safe-area-inset-top));
-      background: #142640;
-      border-bottom: 1px solid #263b56;
-    }
-
-    .top {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .back {
-      color: #a9c6ec;
-      text-decoration: none;
-      font-size: 25px;
-      padding: 4px;
-    }
-
-    h1 {
-      font-size: 21px;
-    }
-
-    .subtitle {
-      color: #91a9c6;
-      font-size: 13px;
-      margin-top: 7px;
-    }
-
-    #status {
-      padding: 10px 16px;
-      text-align: center;
-      font-size: 12px;
-      color: #a9c6ec;
-    }
-
-    #contactList {
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .contact {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px;
-      background: #172b45;
-      border: 1px solid #29415f;
-      border-radius: 12px;
-    }
-
-    .avatar {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background: #28518a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 18px;
-      flex-shrink: 0;
-      overflow: hidden;
-    }
-
-    .avatar img {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-      border-radius: 50%;
-    }
-
-    .avatar.has-photo {
-      cursor: pointer;
-    }
-
-    .avatar.has-photo:focus-visible {
-      outline: 2px solid #8fc2ff;
-      outline-offset: 3px;
-    }
-
-    .contact-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .contact-info h3 {
-      font-size: 15px;
-      overflow-wrap: anywhere;
-    }
-
-    .contact-info p {
-      color: #91a9c6;
-      font-size: 12px;
-      margin-top: 5px;
-    }
-
-    button {
-      border: none;
-      border-radius: 20px;
-      background: #3978c7;
-      color: white;
-      font-weight: bold;
-      padding: 11px 16px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-    }
-
-    .empty {
-      text-align: center;
-      color: #91a9c6;
-      padding: 35px 20px;
-      line-height: 1.7;
-    }
-
-    .empty a {
-      display: inline-block;
-      margin-top: 15px;
-      color: #8fc2ff;
-      text-decoration: none;
-    }
-
-    #chatScreen {
-      display: none;
-      flex: 1;
-      min-height: 0;
-      flex-direction: column;
-    }
-
-    .chat-header {
-      padding: 13px 16px;
-      background: #142640;
-      border-bottom: 1px solid #263b56;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .chat-header .avatar {
-      width: 40px;
-      height: 40px;
-    }
-
-    .chat-header h3 {
-      font-size: 15px;
-      overflow-wrap: anywhere;
-    }
-
-    .chat-header p {
-      color: #91a9c6;
-      font-size: 12px;
-      margin-top: 4px;
-    }
-
-    #messages {
-      flex: 1;
-      min-height: 250px;
-      padding: 15px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      overscroll-behavior: contain;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .message-row {
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-      max-width: 100%;
-    }
-
-    .received-row {
-      align-self: flex-start;
-    }
-
-    .message-avatar {
-      width: 30px;
-      height: 30px;
-      font-size: 13px;
-    }
-
-    .message {
-      max-width: 82%;
-      padding: 12px 15px;
-      border-radius: 15px;
-      font-size: 14px;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-    }
-
-    .received-row .message {
-      max-width: calc(100% - 38px);
-    }
-
-    .sent {
-      align-self: flex-end;
-      background: #285b9b;
-      border-bottom-right-radius: 4px;
-    }
-
-    .received {
-      align-self: flex-start;
-      background: #20344f;
-      border-bottom-left-radius: 4px;
-    }
-
-    .message-time {
-      display: block;
-      font-size: 10px;
-      color: #c1d0e4;
-      margin-top: 5px;
-      text-align: right;
-    }
-
-    #messageForm {
-      flex-shrink: 0;
-      display: flex;
-      gap: 10px;
-      padding: 12px;
-      padding-bottom: max(12px, env(safe-area-inset-bottom));
-      background: #142640;
-      border-top: 1px solid #263b56;
-    }
-
-    #messageInput {
-      flex: 1;
-      min-width: 0;
-      height: 48px;
-      padding: 0 15px;
-      border: 1px solid #304965;
-      border-radius: 25px;
-      outline: none;
-      background: #0b1a2e;
-      color: white;
-      font-size: 16px;
-    }
-
-    #messageInput:focus {
-      border-color: #5597ed;
-    }
-
-    #messageInput::placeholder {
-      color: #91a9c6;
-    }
-
-    #messageForm button {
-      min-width: 70px;
-    }
-
-    /* Enlarged profile picture viewer */
-    #photoViewer {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 16px;
-      padding: 65px 18px 28px;
-      padding-top: max(65px, env(safe-area-inset-top));
-      padding-bottom: max(28px, env(safe-area-inset-bottom));
-      background: rgba(0, 0, 0, 0.94);
-    }
-
-    #photoViewer[hidden] {
-      display: none !important;
-    }
-
-    #closePhotoViewer {
-      position: absolute;
-      top: max(16px, env(safe-area-inset-top));
-      right: 16px;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      padding: 0;
-      background: #263b56;
-      color: white;
-      font-size: 22px;
-    }
-
-    #enlargedPhoto {
-      display: block;
-      width: auto;
-      height: auto;
-      max-width: 100%;
-      max-height: 75vh;
-      max-height: 75dvh;
-      object-fit: contain;
-      border-radius: 8px;
-      box-shadow: 0 8px 35px rgba(0, 0, 0, 0.45);
-    }
-
-    #enlargedPhotoName {
-      color: #f1f5fb;
-      font-size: 16px;
-      text-align: center;
-      overflow-wrap: anywhere;
-      max-width: 100%;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
-
+    * { box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { margin: 0; background: #091426; color: #f1f5fb; min-height: 100vh; }
+    .container { width: 100%; max-width: 850px; min-height: 100vh; margin: auto; background: #101f35; display: flex; flex-direction: column; }
+    header { padding: 18px; background: #142640; border-bottom: 1px solid #263b56; }
+    .top { display: flex; align-items: center; gap: 12px; }
+    .back { color: #a9c6ec; text-decoration: none; font-size: 27px; }
+    h1 { font-size: 22px; margin: 0; }
+    .subtitle { color: #91a9c6; font-size: 14px; margin: 10px 0 0; }
+    #status { padding: 12px; text-align: center; font-size: 13px; color: #a9c6ec; overflow-wrap: anywhere; }
+    #contactList { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .contact { display: flex; align-items: center; gap: 12px; padding: 14px; background: #172b45; border: 1px solid #29415f; border-radius: 12px; }
+    .avatar { width: 45px; height: 45px; border-radius: 50%; background: #28518a; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; flex-shrink: 0; overflow: hidden; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .has-photo { cursor: pointer; }
+    .contact-info { flex: 1; min-width: 0; }
+    .contact-info h3, .chat-header h3 { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+    .contact-info p, .chat-header p { color: #91a9c6; font-size: 12px; margin: 5px 0 0; }
+    button { border: 0; border-radius: 22px; background: #3978c7; color: white; font-weight: bold; padding: 11px 16px; cursor: pointer; }
+    button:disabled { opacity: .5; }
+    .empty { text-align: center; color: #91a9c6; padding: 25px 15px; line-height: 1.7; }
+    .empty a { color: #8fc2ff; display: inline-block; margin-top: 12px; }
+    #chatScreen { display: none; flex: 1; min-height: 0; flex-direction: column; }
+    .chat-header { padding: 13px 16px; background: #142640; border-bottom: 1px solid #263b56; display: flex; align-items: center; gap: 12px; }
+    .chat-header .avatar { width: 40px; height: 40px; }
+    #messages { flex: 1; min-height: 250px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .message { max-width: 82%; padding: 12px 15px; border-radius: 15px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .sent { align-self: flex-end; background: #285b9b; border-bottom-right-radius: 4px; }
+    .received { align-self: flex-start; background: #20344f; border-bottom-left-radius: 4px; }
+    .message-time { display: block; font-size: 10px; color: #c1d0e4; margin-top: 5px; text-align: right; }
+    #messageForm { display: flex; gap: 10px; padding: 12px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: #142640; border-top: 1px solid #263b56; }
+    #messageInput { flex: 1; min-width: 0; height: 48px; padding: 0 15px; border: 1px solid #304965; border-radius: 25px; outline: none; background: #0b1a2e; color: white; font-size: 16px; }
+    #messageInput::placeholder { color: #91a9c6; }
+    #photoViewer { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; padding: 65px 18px 28px; background: rgba(0,0,0,.94); }
+    #photoViewer[hidden], [hidden] { display: none !important; }
+    #closePhotoViewer { position: absolute; top: max(16px, env(safe-area-inset-top)); right: 16px; width: 44px; height: 44px; padding: 0; font-size: 22px; background: #263b56; }
+    #enlargedPhoto { max-width: 100%; max-height: 75vh; max-height: 75dvh; object-fit: contain; border-radius: 8px; }
+    #enlargedPhotoName { color: white; font-size: 16px; text-align: center; overflow-wrap: anywhere; }
     @media (min-width: 600px) {
-      .container {
-        min-height: 90vh;
-        min-height: 90dvh;
-        max-height: 900px;
-        margin-top: 5vh;
-        border: 1px solid #203651;
-        border-radius: 16px;
-        overflow: hidden;
-      }
-
-      #chatScreen {
-        min-height: 0;
-      }
-
-      #enlargedPhoto {
-        max-height: 78vh;
-        max-height: 78dvh;
-      }
+      .container { min-height: 90vh; max-height: 900px; margin-top: 5vh; border-radius: 16px; overflow: hidden; }
     }
   </style>
 </head>
 
 <body>
-  <main class="container">
-    <header>
-      <div class="top">
-        <a href="dashboard.html" class="back" aria-label="Back to dashboard">‹</a>
-        <h1 id="pageTitle">My Messages</h1>
+<main class="container">
+  <header>
+    <div class="top">
+      <a href="dashboard.html" class="back" aria-label="Back to dashboard">‹</a>
+      <h1 id="pageTitle">My Messages</h1>
+    </div>
+    <p class="subtitle" id="pageSubtitle">Select an accepted contact to start chatting.</p>
+  </header>
+
+  <div id="status" role="status">Connecting to SIMPLEXPING...</div>
+  <section id="contactList"></section>
+
+  <section id="chatScreen">
+    <div class="chat-header">
+      <button type="button" id="backToContacts">‹</button>
+      <div class="avatar" id="chatAvatar">?</div>
+      <div>
+        <h3 id="chatName">Contact</h3>
+        <p>SIMPLEXPING member</p>
       </div>
+    </div>
 
-      <p class="subtitle" id="pageSubtitle">
-        Select an accepted contact to start chatting.
-      </p>
-    </header>
+    <div id="messages">
+      <p class="empty">Your conversation will appear here.</p>
+    </div>
 
-    <div id="status" role="status">Connecting...</div>
+    <form id="messageForm" hidden>
+      <input type="text" id="messageInput" placeholder="Write a message..." maxlength="2000" autocomplete="off" enterkeyhint="send" required>
+      <button type="submit" id="sendButton">Send</button>
+    </form>
+  </section>
+</main>
 
-    <section id="contactList"></section>
+<div id="photoViewer" hidden>
+  <button type="button" id="closePhotoViewer" aria-label="Close photo">✕</button>
+  <img id="enlargedPhoto" alt="Enlarged profile picture">
+  <p id="enlargedPhotoName"></p>
+</div>
 
-    <section id="chatScreen">
-      <div class="chat-header">
-        <button type="button" id="backToContacts">‹</button>
-        <div class="avatar" id="chatAvatar">?</div>
+<script type="module">
+  import { auth, db } from "./firebase.js";
 
-        <div>
-          <h3 id="chatName">Contact</h3>
-          <p>SIMPLEXPING member</p>
-        </div>
-      </div>
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-      <div id="messages">
-        <p class="empty">Your conversation will appear here.</p>
-      </div>
+  import {
+    doc, getDoc, getDocs, setDoc, collection, addDoc,
+    query, where, orderBy, limit, onSnapshot, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-      <form id="messageForm">
-        <input
-          type="text"
-          id="messageInput"
-          placeholder="Write a message..."
-          maxlength="2000"
-          autocomplete="off"
-          enterkeyhint="send"
-          aria-label="Write a message"
-          required
-        >
-        <button type="submit" id="sendButton">Send</button>
-      </form>
-    </section>
-  </main>
+  const $ = id => document.getElementById(id);
+  const contactList = $("contactList");
+  const chatScreen = $("chatScreen");
+  const messagesBox = $("messages");
+  const messageForm = $("messageForm");
+  const messageInput = $("messageInput");
+  const sendButton = $("sendButton");
+  const statusText = $("status");
+  const photoViewer = $("photoViewer");
+  const enlargedPhoto = $("enlargedPhoto");
 
-  <!-- Enlarged profile picture viewer -->
-  <div id="photoViewer" hidden>
-    <button
-      type="button"
-      id="closePhotoViewer"
-      aria-label="Close enlarged profile picture"
-    >✕</button>
+  const requestedUserId = new URLSearchParams(location.search).get("with");
 
-    <img id="enlargedPhoto" src="" alt="Enlarged profile picture">
-    <p id="enlargedPhotoName"></p>
-  </div>
+  let currentUser = null;
+  let conversationId = null;
+  let otherUserId = null;
+  let stopMessagesListener = null;
+  let sending = false;
 
-  <script type="module">
-    import { auth, db } from "./firebase.js";
+  function showStatus(text) {
+    statusText.textContent = text;
+  }
 
-    import {
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+  function showEmpty(container, text, linkText = "", linkHref = "") {
+    container.replaceChildren();
+    const p = document.createElement("p");
+    p.className = "empty";
+    p.textContent = text;
 
-    import {
-      doc,
-      getDoc,
-      getDocs,
-      setDoc,
-      collection,
-      addDoc,
-      query,
-      where,
-      orderBy,
-      limit,
-      onSnapshot,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-    const contactList = document.getElementById("contactList");
-    const chatScreen = document.getElementById("chatScreen");
-    const messagesBox = document.getElementById("messages");
-    const messageForm = document.getElementById("messageForm");
-    const messageInput = document.getElementById("messageInput");
-    const sendButton = document.getElementById("sendButton");
-    const statusText = document.getElementById("status");
-
-    const pageTitle = document.getElementById("pageTitle");
-    const pageSubtitle = document.getElementById("pageSubtitle");
-    const chatName = document.getElementById("chatName");
-    const chatAvatar = document.getElementById("chatAvatar");
-    const backToContacts = document.getElementById("backToContacts");
-
-    const photoViewer = document.getElementById("photoViewer");
-    const enlargedPhoto = document.getElementById("enlargedPhoto");
-    const enlargedPhotoName = document.getElementById("enlargedPhotoName");
-    const closePhotoViewer = document.getElementById("closePhotoViewer");
-
-    const requestedUserId = new URLSearchParams(
-      window.location.search
-    ).get("with");
-
-    let currentUser = null;
-    let conversationId = null;
-    let otherUserId = null;
-    let stopMessagesListener = null;
-    let chatReady = false;
-    let sending = false;
-    let otherUserPhotoURL = "";
-
-    function showStatus(text) {
-      statusText.textContent = text;
+    if (linkText && linkHref) {
+      const a = document.createElement("a");
+      a.href = linkHref;
+      a.textContent = linkText;
+      p.append(document.createElement("br"), a);
     }
+    container.appendChild(p);
+  }
 
-    function showEmpty(container, text) {
-      container.replaceChildren();
+  function openPhoto(name, url) {
+    if (!url) return;
+    $("enlargedPhotoName").textContent = name;
+    enlargedPhoto.alt = name + "'s profile picture";
+    enlargedPhoto.src = url;
+    photoViewer.hidden = false;
+    $("closePhotoViewer").focus();
+  }
 
-      const paragraph = document.createElement("p");
-      paragraph.className = "empty";
-      paragraph.textContent = text;
+  function closePhoto() {
+    photoViewer.hidden = true;
+    enlargedPhoto.removeAttribute("src");
+  }
 
-      container.appendChild(paragraph);
-    }
+  $("closePhotoViewer").addEventListener("click", closePhoto);
+  photoViewer.addEventListener("click", event => {
+    if (event.target === photoViewer) closePhoto();
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !photoViewer.hidden) closePhoto();
+  });
+  enlargedPhoto.addEventListener("error", () => {
+    closePhoto();
+    showStatus("Unable to open this profile picture.");
+  });
 
-    function openPhotoViewer(name, photoURL) {
-      if (!photoURL) return;
+  function setAvatar(element, name, photoURL) {
+    element.replaceChildren();
+    element.classList.remove("has-photo");
+    element.onclick = null;
+    element.onkeydown = null;
 
-      enlargedPhoto.src = photoURL;
-      enlargedPhoto.alt = name + "'s profile picture";
-      enlargedPhotoName.textContent = name;
+    const initial = (name || "U").trim().charAt(0).toUpperCase() || "U";
 
-      photoViewer.hidden = false;
-      closePhotoViewer.focus();
-    }
-
-    function closePhoto() {
-      photoViewer.hidden = true;
-      enlargedPhoto.removeAttribute("src");
-    }
-
-    closePhotoViewer.addEventListener("click", closePhoto);
-
-    photoViewer.addEventListener("click", event => {
-      if (event.target === photoViewer) {
-        closePhoto();
-      }
-    });
-
-    enlargedPhoto.addEventListener("error", () => {
-      closePhoto();
-      showStatus("Unable to open this profile picture.");
-    });
-
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape" && !photoViewer.hidden) {
-        closePhoto();
-      }
-    });
-
-    // Display a profile picture, or the person's initial if unavailable.
-    function setAvatar(element, name, photoURL) {
-      element.replaceChildren();
-      element.classList.remove("has-photo");
+    if (!photoURL) {
+      element.textContent = initial;
       element.removeAttribute("role");
       element.removeAttribute("tabindex");
-      element.removeAttribute("aria-label");
+      return;
+    }
 
-      const initial = (name || "U").trim().charAt(0).toUpperCase() || "U";
+    const img = document.createElement("img");
+    img.src = photoURL;
+    img.alt = name + "'s profile picture";
+    img.onerror = () => {
+      element.replaceChildren();
+      element.textContent = initial;
+      element.classList.remove("has-photo");
+      element.onclick = null;
+      element.onkeydown = null;
+    };
 
-      if (photoURL) {
-        const image = document.createElement("img");
-        image.src = photoURL;
-        image.alt = name + "'s profile picture";
-        image.loading = "lazy";
-
-        image.addEventListener("error", () => {
-          element.replaceChildren();
-          element.textContent = initial;
-          element.classList.remove("has-photo");
-          element.removeAttribute("role");
-          element.removeAttribute("tabindex");
-          element.removeAttribute("aria-label");
-        }, { once: true });
-
-        element.appendChild(image);
-        element.classList.add("has-photo");
-        element.setAttribute("role", "button");
-        element.setAttribute("tabindex", "0");
-        element.setAttribute("aria-label", "View " + name + "'s profile picture");
-
-        element.onclick = () => openPhotoViewer(name, photoURL);
-
-        element.onkeydown = event => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            openPhotoViewer(name, photoURL);
-          }
-        };
-      } else {
-        element.textContent = initial;
-        element.onclick = null;
-        element.onkeydown = null;
+    element.appendChild(img);
+    element.classList.add("has-photo");
+    element.setAttribute("role", "button");
+    element.setAttribute("tabindex", "0");
+    element.setAttribute("aria-label", "View " + name + "'s profile picture");
+    element.onclick = () => openPhoto(name, photoURL);
+    element.onkeydown = event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openPhoto(name, photoURL);
       }
+    };
+  }
+
+  function stopChatListener() {
+    if (stopMessagesListener) {
+      stopMessagesListener();
+      stopMessagesListener = null;
     }
+  }
 
-    function showContact(contact) {
-      const card = document.createElement("div");
-      card.className = "contact";
+  async function loadContacts() {
+    contactList.replaceChildren();
+    showStatus("Loading your accepted contacts...");
 
-      const avatar = document.createElement("div");
-      avatar.className = "avatar";
-      setAvatar(avatar, contact.name, contact.photoURL);
-
-      const info = document.createElement("div");
-      info.className = "contact-info";
-
-      const name = document.createElement("h3");
-      name.textContent = contact.name;
-
-      const subtitle = document.createElement("p");
-      subtitle.textContent = "Accepted contact";
-
-      info.append(name, subtitle);
-
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = "Message";
-
-      button.addEventListener("click", () => {
-        openChat(contact.uid);
-      });
-
-      card.append(avatar, info, button);
-      contactList.appendChild(card);
-    }
-
-    async function loadContacts() {
-      contactList.replaceChildren();
-      showStatus("Loading your accepted contacts...");
-
-      try {
-        const contactsQuery = query(
-          collection(db, "contacts"),
-          where("participants", "array-contains", currentUser.uid)
-        );
-
-        const snapshot = await getDocs(contactsQuery);
-        const contactIds = new Set();
-
-        snapshot.forEach(contactDoc => {
-          const participants = contactDoc.data().participants || [];
-
-          participants.forEach(uid => {
-            if (uid !== currentUser.uid) {
-              contactIds.add(uid);
-            }
-          });
-        });
-
-        if (contactIds.size === 0) {
-          showEmpty(contactList, "You haven't added any contacts yet.");
-
-          const link = document.createElement("a");
-          link.href = "contacts.html";
-          link.textContent = "Find people in Contacts";
-
-          contactList.firstChild.appendChild(link);
-          showStatus("No accepted contacts yet.");
-          return;
-        }
-
-        let displayed = 0;
-
-        for (const uid of contactIds) {
-          try {
-            const userSnapshot = await getDoc(doc(db, "users", uid));
-
-            if (!userSnapshot.exists()) {
-              continue;
-            }
-
-            const data = userSnapshot.data();
-
-            showContact({
-              uid,
-              name: data.fullName || data.username || "User",
-              photoURL: data.photoURL || ""
-            });
-
-            displayed++;
-          } catch (error) {
-            console.error("Contact loading error:", error);
-          }
-        }
-
-        if (displayed === 0) {
-          showEmpty(contactList, "Your contacts could not be loaded.");
-        }
-
-        showStatus(displayed + " accepted contact(s).");
-      } catch (error) {
-        console.error("Contact list error:", error);
-        showStatus("Unable to load contacts.");
-
-        showEmpty(
-          contactList,
-          "Could not load your contacts. Please refresh and try again."
-        );
-      }
-    }
-
-    function showContactList() {
-      if (stopMessagesListener) {
-        stopMessagesListener();
-        stopMessagesListener = null;
-      }
-
-      chatReady = false;
-      conversationId = null;
-      otherUserId = null;
-      otherUserPhotoURL = "";
-
-      chatScreen.style.display = "none";
-      contactList.style.display = "flex";
-
-      pageTitle.textContent = "My Messages";
-      pageSubtitle.textContent =
-        "Select an accepted contact to start chatting.";
-
-      messageInput.value = "";
-      messageForm.hidden = false;
-
-      loadContacts();
-    }
-
-    async function checkAcceptedContact(uid) {
-      const contactsQuery = query(
+    try {
+      const q = query(
         collection(db, "contacts"),
         where("participants", "array-contains", currentUser.uid)
       );
+      const snapshot = await getDocs(q);
+      const ids = new Set();
 
-      const snapshot = await getDocs(contactsQuery);
-
-      return snapshot.docs.some(contactDoc => {
-        const participants = contactDoc.data().participants || [];
-        return participants.includes(uid);
+      snapshot.forEach(item => {
+        const participants = item.data().participants || [];
+        participants.forEach(uid => {
+          if (uid !== currentUser.uid) ids.add(uid);
+        });
       });
-    }
 
-    async function openChat(uid) {
-      if (!uid || uid === currentUser.uid) {
-        showStatus("Invalid contact.");
+      if (!ids.size) {
+        showEmpty(contactList, "You haven't added any contacts yet.", "Find people in Contacts", "contacts.html");
+        showStatus("No accepted contacts yet.");
         return;
       }
 
-      if (stopMessagesListener) {
-        stopMessagesListener();
-        stopMessagesListener = null;
+      let displayed = 0;
+
+      for (const uid of ids) {
+        try {
+          const userSnap = await getDoc(doc(db, "users", uid));
+          if (!userSnap.exists()) continue;
+
+          const data = userSnap.data();
+          const name = data.fullName || data.username || "User";
+          const photoURL = data.photoURL || "";
+
+          const card = document.createElement("div");
+          card.className = "contact";
+
+          const avatar = document.createElement("div");
+          avatar.className = "avatar";
+          setAvatar(avatar, name, photoURL);
+
+          const info = document.createElement("div");
+          info.className = "contact-info";
+          const heading = document.createElement("h3");
+          heading.textContent = name;
+          const sub = document.createElement("p");
+          sub.textContent = "Accepted contact";
+          info.append(heading, sub);
+
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = "Message";
+          button.addEventListener("click", () => openChat(uid));
+
+          card.append(avatar, info, button);
+          contactList.appendChild(card);
+          displayed++;
+        } catch (error) {
+          console.error("Could not load contact:", error);
+        }
       }
 
-      otherUserId = uid;
-      chatReady = false;
-      conversationId = null;
-      otherUserPhotoURL = "";
+      if (!displayed) {
+        showEmpty(contactList, "Your contacts could not be loaded.");
+        showStatus("No contact profiles could be loaded.");
+      } else {
+        showStatus(displayed + " accepted contact(s).");
+      }
+    } catch (error) {
+      console.error("Contact list error:", error);
+      showStatus("Unable to load contacts: " + (error.code || error.message || "Please try again."));
+      showEmpty(contactList, "Could not load your contacts. Check your connection and refresh.");
+    }
+  }
 
-      contactList.style.display = "none";
-      chatScreen.style.display = "flex";
+  async function checkAcceptedContact(uid) {
+    const q = query(
+      collection(db, "contacts"),
+      where("participants", "array-contains", currentUser.uid)
+    );
+    const snapshot = await getDocs(q);
 
-      pageTitle.textContent = "Private Chat";
-      pageSubtitle.textContent = "Your private conversation.";
+    return snapshot.docs.some(item => {
+      const participants = item.data().participants || [];
+      return participants.includes(uid);
+    });
+  }
 
-      messagesBox.replaceChildren();
-      showEmpty(messagesBox, "Opening conversation...");
-      messageForm.hidden = true;
+  async function openChat(uid) {
+    if (!uid || uid === currentUser.uid) {
+      showStatus("Invalid contact.");
+      return;
+    }
 
-      try {
-        showStatus("Checking accepted contact...");
+    stopChatListener();
+    otherUserId = uid;
+    conversationId = null;
+    contactList.style.display = "none";
+    chatScreen.style.display = "flex";
+    messageForm.hidden = true;
+    messagesBox.replaceChildren();
+    showEmpty(messagesBox, "Opening conversation...");
+    $("pageTitle").textContent = "Private Chat";
+    $("pageSubtitle").textContent = "Your private conversation.";
 
-        const accepted = await checkAcceptedContact(uid);
+    try {
+      showStatus("Checking accepted contact...");
+      if (!(await checkAcceptedContact(uid))) {
+        showStatus("This person is not an accepted contact.");
+        showEmpty(messagesBox, "Return to contacts and select an accepted contact.");
+        return;
+      }
 
-        if (!accepted) {
-          showStatus("This person is not an accepted contact.");
-          showEmpty(
-            messagesBox,
-            "Return to contacts and select an accepted contact."
-          );
-          return;
-        }
+      const userSnap = await getDoc(doc(db, "users", uid));
+      if (!userSnap.exists()) {
+        showStatus("Contact profile not found.");
+        return;
+      }
 
-        const userSnapshot = await getDoc(doc(db, "users", uid));
+      const userData = userSnap.data();
+      const name = userData.fullName || userData.username || "User";
+      $("chatName").textContent = name;
+      setAvatar($("chatAvatar"), name, userData.photoURL || "");
 
-        if (!userSnapshot.exists()) {
-          showStatus("Contact not found.");
-          return;
-        }
+      const members = [currentUser.uid, uid].sort();
+      conversationId = members.join("_");
 
-        const userData = userSnapshot.data();
-        const name = userData.fullName || userData.username || "User";
+      await setDoc(doc(db, "conversations", conversationId), {
+        participants: members,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
 
-        otherUserPhotoURL = userData.photoURL || "";
+      const activeConversation = conversationId;
+      const messagesQuery = query(
+        collection(db, "conversations", activeConversation, "messages"),
+        orderBy("createdAt", "asc"),
+        limit(100)
+      );
 
-        chatName.textContent = name;
-        setAvatar(chatAvatar, name, otherUserPhotoURL);
+      stopMessagesListener = onSnapshot(messagesQuery, snapshot => {
+        if (conversationId !== activeConversation || otherUserId !== uid) return;
 
-        const members = [currentUser.uid, uid].sort();
-        conversationId = members.join("_");
+        messagesBox.replaceChildren();
 
-        const conversationRef = doc(
-          db,
-          "conversations",
-          conversationId
-        );
+        if (snapshot.empty) {
+          showEmpty(messagesBox, "No messages yet. Say hello!");
+        } else {
+          snapshot.forEach(item => {
+            const data = item.data();
+            const isSent = data.senderId === currentUser.uid;
+            const bubble = document.createElement("div");
+            bubble.className = "message " + (isSent ? "sent" : "received");
 
-        await setDoc(conversationRef, {
-          participants: members,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+            const content = document.createElement("div");
+            content.textContent = data.text || "";
+            bubble.appendChild(content);
 
-        const messagesQuery = query(
-          collection(db, "conversations", conversationId, "messages"),
-          orderBy("createdAt", "asc"),
-          limit(100)
-        );
-
-        stopMessagesListener = onSnapshot(
-          messagesQuery,
-          snapshot => {
-            if (!conversationId || otherUserId !== uid) return;
-
-            messagesBox.replaceChildren();
-
-            if (snapshot.empty) {
-              showEmpty(messagesBox, "No messages yet. Say hello!");
-              return;
+            const time = document.createElement("span");
+            time.className = "message-time";
+            if (data.createdAt && data.createdAt.toDate) {
+              time.textContent = data.createdAt.toDate().toLocaleString();
+            } else {
+              time.textContent = "Sending...";
             }
+            bubble.appendChild(time);
+            messagesBox.appendChild(bubble);
+          });
 
-            snapshot.forEach(messageDoc => {
-              const messageData = messageDoc.data();
-              const isSent = messageData.senderId === currentUser.uid;
+          messagesBox.scrollTop = messagesBox.scrollHeight;
+        }
 
-              const message = document.createElement("div");
-              message.className = "message " + (isSent ? "sent" : "received");
+        messageForm.hidden = false;
+        showStatus("Connected to " + name);
+      }, error => {
+        console.error("Messages listener error:", error);
+        showStatus("Unable to load messages: " + (error.code || error.message || "Please try again."));
+      });
+    } catch (error) {
+      console.error("Open chat error:", error);
+      showStatus("Could not open chat: " + (error.code || error.message || "Please try again."));
+      showEmpty(messagesBox, "The conversation could not be opened. Return to contacts and try again.");
+    }
+  }
 
-              const content = document.createElement("div");
-              content.textContent = messageData.text || "";
+  messageForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    const text = messageInput.value.trim();
 
-              const time = document.createElement("span");
-              time.className = "message-time"
+    if (!text || !currentUser || !conversationId || !otherUserId || sending) return;
+
+    sending = true;
+    sendButton.disabled = true;
+
+    try {
+      const activeConversation = conversationId;
+      await addDoc(
+        collection(db, "conversations", activeConversation, "messages"),
+        {
+          text,
+          senderId: currentUser.uid,
+          createdAt: serverTimestamp()
+        }
+      );
+
+      messageInput.value = "";
+      showStatus("Message sent.");
+    } catch (error) {
+      console.error("Send message error:", error);
+      showStatus("Message not sent: " + (error.code || error.message || "Please try again."));
+    } finally {
+      sending = false;
+      sendButton.disabled = false;
+      messageInput.focus();
+    }
+  });
+
+  $("backToContacts").addEventListener("click", () => {
+    stopChatListener();
+    conversationId = null;
+    otherUserId = null;
+    chatScreen.style.display = "none";
+    contactList.style.display = "flex";
+    $("pageTitle").textContent = "My Messages";
+    $("pageSubtitle").textContent = "Select an accepted contact to start chatting.";
+    messageForm.hidden = true;
+    loadContacts();
+  });
+
+  onAuthStateChanged(auth, async user => {
+    if (!user) {
+      showStatus("Please log in first. Redirecting...");
+      location.href = "login.html";
+      return;
+    }
+
+    currentUser = user;
+
+    if (requestedUserId) {
+      await openChat(requestedUserId);
+    } else {
+      await loadContacts();
+    }
+  }, error => {
+    console.error("Authentication error:", error);
+    showStatus("Sign-in connection failed: " + (error.code || error.message || "Please refresh and log in again."));
+  });
+</script>
+</body>
+</html>
+
