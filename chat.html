@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -312,8 +311,8 @@ button:disabled {
   background: rgba(0,0,0,.94);
 }
 
-#photoViewer[hidden],
-[hidden] {
+[hidden],
+#photoViewer[hidden] {
   display: none !important;
 }
 
@@ -366,10 +365,6 @@ button:disabled {
   .attach-button {
     padding: 9px 10px;
   }
-
-  #messageInput {
-    font-size: 16px;
-  }
 }
 </style>
 </head>
@@ -380,7 +375,8 @@ button:disabled {
 
 <header>
   <div class="top">
-    <a href="dashboard.html" class="back" aria-label="Back to dashboard">‹</a>
+    <a href="dashboard.html" class="back"
+       aria-label="Back to dashboard">‹</a>
     <h1 id="pageTitle">My Messages</h1>
   </div>
 
@@ -389,7 +385,9 @@ button:disabled {
   </p>
 </header>
 
-<div id="status" role="status">Connecting to SIMPLEXPING...</div>
+<div id="status" role="status">
+  Connecting to SIMPLEXPING...
+</div>
 
 <section id="contactList"></section>
 
@@ -425,42 +423,24 @@ button:disabled {
   </div>
 
   <p id="mediaHelp" hidden>
-    Photos: JPG, PNG or WebP, up to 5 MB.
-    Audio: up to 10 MB.
+    Photos: up to 5 MB. Audio: up to 10 MB.
     Videos: up to 20 MB.
-    Uploads are subject to Cloudinary limits.
   </p>
 
-  <input
-    type="file"
-    id="photoInput"
-    accept="image/jpeg,image/png,image/webp"
-    hidden
-  >
+  <input type="file" id="photoInput"
+         accept="image/jpeg,image/png,image/webp" hidden>
 
-  <input
-    type="file"
-    id="audioInput"
-    accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg"
-    hidden
-  >
+  <input type="file" id="audioInput"
+         accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg" hidden>
 
-  <input
-    type="file"
-    id="videoInput"
-    accept="video/*"
-    hidden
-  >
+  <input type="file" id="videoInput"
+         accept="video/*" hidden>
 
   <form id="messageForm" hidden>
-    <input
-      type="text"
-      id="messageInput"
-      placeholder="Write a message..."
-      maxlength="2000"
-      autocomplete="off"
-      enterkeyhint="send"
-    >
+    <input type="text" id="messageInput"
+           placeholder="Write a message..."
+           maxlength="2000" autocomplete="off"
+           enterkeyhint="send">
 
     <button type="submit" id="sendButton">Send</button>
   </form>
@@ -469,12 +449,182 @@ button:disabled {
 </main>
 
 <div id="photoViewer" hidden>
-  <button type="button" id="closePhotoViewer" aria-label="Close photo">✕</button>
+  <button type="button" id="closePhotoViewer"
+          aria-label="Close photo">✕</button>
+
   <img id="enlargedPhoto" alt="Enlarged picture">
+
   <p id="enlargedPhotoName"></p>
 </div>
 
 <script type="module">
+
+import { auth, db } from "./firebase.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import {
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  onSnapshot,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+/* Cloudinary configuration */
+const CLOUDINARY_CLOUD_NAME = "ewzaj6yw";
+const CLOUDINARY_UPLOAD_PRESET = "simplexping_chat_media";
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
+
+const $ = id => document.getElementById(id);
+
+const contactList = $("contactList");
+const chatScreen = $("chatScreen");
+const messagesBox = $("messages");
+const messageForm = $("messageForm");
+const messageInput = $("messageInput");
+const sendButton = $("sendButton");
+const statusText = $("status");
+const photoViewer = $("photoViewer");
+const enlargedPhoto = $("enlargedPhoto");
+const attachmentButtons = $("attachmentButtons");
+const mediaHelp = $("mediaHelp");
+const photoInput = $("photoInput");
+const audioInput = $("audioInput");
+const videoInput = $("videoInput");
+const photoButton = $("photoButton");
+const audioButton = $("audioButton");
+const videoButton = $("videoButton");
+const backButton = $("backToContacts");
+
+const requestedUserId =
+  new URLSearchParams(location.search).get("with");
+
+let currentUser = null;
+let conversationId = null;
+let otherUserId = null;
+let stopMessagesListener = null;
+let sending = false;
+let uploadingMedia = false;
+
+function showStatus(text) {
+  statusText.textContent = text;
+}
+
+function showEmpty(container, text, linkText = "", linkHref = "") {
+  container.replaceChildren();
+
+  const p = document.createElement("p");
+  p.className = "empty";
+  p.textContent = text;
+
+  if (linkText && linkHref) {
+    const a = document.createElement("a");
+    a.href = linkHref;
+    a.textContent = linkText;
+    p.append(document.createElement("br"), a);
+  }
+
+  container.appendChild(p);
+}
+
+function openPhoto(name, url) {
+  if (!url) return;
+
+  $("enlargedPhotoName").textContent = name;
+  enlargedPhoto.alt = name;
+  enlargedPhoto.src = url;
+  photoViewer.hidden = false;
+  $("closePhotoViewer").focus();
+}
+
+function closePhoto() {
+  photoViewer.hidden = true;
+  enlargedPhoto.removeAttribute("src");
+}
+
+$("closePhotoViewer").addEventListener("click", closePhoto);
+
+photoViewer.addEventListener("click", event => {
+  if (event.target === photoViewer) closePhoto();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !photoViewer.hidden) {
+    closePhoto();
+  }
+});
+
+enlargedPhoto.addEventListener("error", () => {
+  closePhoto();
+  showStatus("Unable to open this picture.");
+});
+
+function setAvatar(element, name, photoURL) {
+  element.replaceChildren();
+  element.classList.remove("has-photo");
+  element.onclick = null;
+  element.onkeydown = null;
+
+  const initial =
+    (name || "U").trim().charAt(0).toUpperCase() || "U";
+
+  if (!photoURL) {
+    element.textContent = initial;
+    element.removeAttribute("role");
+    element.removeAttribute("tabindex");
+    return;
+  }
+
+  const img = document.createElement("img");
+  img.src = photoURL;
+  img.alt = name + "'s profile picture";
+
+  img.onerror = () => {
+    element.replaceChildren();
+    element.textContent = initial;
+    element.classList.remove("has-photo");
+    element.onclick = null;
+    element.onkeydown = null;
+  };
+
+  element.appendChild(img);
+  element.classList.add("has-photo");
+  element.setAttribute("role", "button");
+  element.setAttribute("tabindex", "0");
+  element.setAttribute("aria-label", "View " + name + "'s profile picture");
+
+  element.onclick = () =>
+    openPhoto(name + "'s profile picture", photoURL);
+
+  element.onkeydown = event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openPhoto(name + "'s profile picture", photoURL);
+    }
+  };
+}
+
+function stopChatListener() {
+  if (stopMessagesListener) {
+    stopMessagesListener();
+    stopMessagesListener = null;
+  }
+}
+
+/* PART 1 ENDS HERE */
   /* Load accepted contacts */
 async function loadContacts() {
   contactList.replaceChildren();
@@ -491,8 +641,11 @@ async function loadContacts() {
 
     snapshot.forEach(item => {
       const participants = item.data().participants || [];
+
       participants.forEach(uid => {
-        if (uid !== currentUser.uid) ids.add(uid);
+        if (uid !== currentUser.uid) {
+          ids.add(uid);
+        }
       });
     });
 
@@ -503,6 +656,7 @@ async function loadContacts() {
         "Find people in Contacts",
         "contacts.html"
       );
+
       showStatus("No accepted contacts yet.");
       return;
     }
@@ -512,6 +666,7 @@ async function loadContacts() {
     for (const uid of ids) {
       try {
         const userSnap = await getDoc(doc(db, "users", uid));
+
         if (!userSnap.exists()) continue;
 
         const data = userSnap.data();
@@ -543,6 +698,7 @@ async function loadContacts() {
 
         card.append(avatar, info, button);
         contactList.appendChild(card);
+
         displayed++;
       } catch (error) {
         console.error("Could not load contact:", error);
@@ -555,12 +711,15 @@ async function loadContacts() {
     } else {
       showStatus(displayed + " accepted contact(s).");
     }
+
   } catch (error) {
     console.error("Contact list error:", error);
+
     showStatus(
       "Unable to load contacts: " +
       (error.code || error.message || "Please try again.")
     );
+
     showEmpty(
       contactList,
       "Could not load your contacts. Check your connection and refresh."
@@ -568,6 +727,7 @@ async function loadContacts() {
   }
 }
 
+/* Verify that the selected person is an accepted contact */
 async function checkAcceptedContact(uid) {
   const q = query(
     collection(db, "contacts"),
@@ -590,6 +750,7 @@ async function openChat(uid) {
   }
 
   stopChatListener();
+
   otherUserId = uid;
   conversationId = null;
 
@@ -611,10 +772,12 @@ async function openChat(uid) {
 
     if (!(await checkAcceptedContact(uid))) {
       showStatus("This person is not an accepted contact.");
+
       showEmpty(
         messagesBox,
         "Return to contacts and select an accepted contact."
       );
+
       return;
     }
 
@@ -629,7 +792,12 @@ async function openChat(uid) {
     const name = userData.fullName || userData.username || "User";
 
     $("chatName").textContent = name;
-    setAvatar($("chatAvatar"), name, userData.photoURL || "");
+
+    setAvatar(
+      $("chatAvatar"),
+      name,
+      userData.photoURL || ""
+    );
 
     const members = [currentUser.uid, uid].sort();
     conversationId = members.join("_");
@@ -662,7 +830,9 @@ async function openChat(uid) {
         if (
           conversationId !== activeConversation ||
           otherUserId !== uid
-        ) return;
+        ) {
+          return;
+        }
 
         messagesBox.replaceChildren();
 
@@ -677,6 +847,7 @@ async function openChat(uid) {
             bubble.className =
               "message " + (isSent ? "sent" : "received");
 
+            /* Display picture messages */
             if (data.type === "image" && data.mediaUrl) {
               if (data.text) {
                 const caption = document.createElement("div");
@@ -700,12 +871,40 @@ async function openChat(uid) {
                 img.style.display = "none";
 
                 const fallback = document.createElement("p");
-                fallback.textContent = "Picture could not be loaded.";
+                fallback.textContent =
+                  "Picture could not be loaded.";
+
                 bubble.insertBefore(fallback, img);
               }, { once: true });
 
               bubble.appendChild(img);
 
+            /* Display video messages */
+            } else if (data.type === "video" && data.mediaUrl) {
+              if (data.text) {
+                const caption = document.createElement("div");
+                caption.className = "message-caption";
+                caption.textContent = data.text;
+                bubble.appendChild(caption);
+              }
+
+              const video = document.createElement("video");
+              video.className = "message-video";
+              video.controls = true;
+              video.preload = "metadata";
+              video.playsInline = true;
+              video.src = data.mediaUrl;
+
+              video.addEventListener("error", () => {
+                const fallback = document.createElement("p");
+                fallback.textContent =
+                  "Video could not be loaded.";
+                bubble.appendChild(fallback);
+              }, { once: true });
+
+              bubble.appendChild(video);
+
+            /* Display audio messages */
             } else if (data.type === "audio" && data.mediaUrl) {
               if (data.text) {
                 const caption = document.createElement("div");
@@ -726,6 +925,7 @@ async function openChat(uid) {
 
               bubble.appendChild(audio);
 
+            /* Display ordinary text messages */
             } else {
               const content = document.createElement("div");
               content.textContent = data.text || "";
@@ -757,6 +957,7 @@ async function openChat(uid) {
       },
       error => {
         console.error("Messages listener error:", error);
+
         showStatus(
           "Unable to load messages: " +
           (error.code || error.message || "Please try again.")
@@ -766,10 +967,12 @@ async function openChat(uid) {
 
   } catch (error) {
     console.error("Open chat error:", error);
+
     showStatus(
       "Could not open chat: " +
       (error.code || error.message || "Please try again.")
     );
+
     showEmpty(
       messagesBox,
       "The conversation could not be opened. Return to contacts and try again."
@@ -777,25 +980,30 @@ async function openChat(uid) {
   }
 }
 
-/* Send text messages */
+/* PART 2 ENDS HERE */
+  
+/* Send ordinary text messages */
 messageForm.addEventListener("submit", async event => {
   event.preventDefault();
 
   const text = messageInput.value.trim();
 
-  if (
-    !text || !currentUser || !conversationId ||
-    !otherUserId || sending
-  ) return;
+  if (!text || !currentUser || !conversationId || sending || uploadingMedia) {
+    return;
+  }
 
+  const activeConversation = conversationId;
   sending = true;
   sendButton.disabled = true;
 
   try {
-    const activeConversation = conversationId;
-
     await addDoc(
-      collection(db, "conversations", activeConversation, "messages"),
+      collection(
+        db,
+        "conversations",
+        activeConversation,
+        "messages"
+      ),
       {
         text,
         type: "text",
@@ -804,14 +1012,20 @@ messageForm.addEventListener("submit", async event => {
       }
     );
 
-    messageInput.value = "";
+    if (conversationId === activeConversation) {
+      messageInput.value = "";
+    }
+
     showStatus("Message sent.");
+
   } catch (error) {
     console.error("Send message error:", error);
+
     showStatus(
-      "Message not sent: " +
+      "Message failed: " +
       (error.code || error.message || "Please try again.")
     );
+
   } finally {
     sending = false;
     sendButton.disabled = false;
@@ -819,98 +1033,150 @@ messageForm.addEventListener("submit", async event => {
   }
 });
 
-/* Upload pictures and audio to Cloudinary */
-async function uploadToCloudinary(file, kind) {
-  const resourceType = kind === "image" ? "image" : "video";
 
-  const uploadURL =
+/* Upload a media file to Cloudinary */
+async function uploadToCloudinary(file, type) {
+  let resourceType;
+
+  if (type === "image") {
+    resourceType = "image";
+  } else {
+    resourceType = "video";
+  }
+
+  const endpoint =
     "https://api.cloudinary.com/v1_1/" +
     CLOUDINARY_CLOUD_NAME +
-    "/" + resourceType + "/upload";
+    "/" + resourceType +
+    "/upload";
 
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-  const response = await fetch(uploadURL, {
+  const response = await fetch(endpoint, {
     method: "POST",
     body: formData
   });
 
-  const result = await response.json();
+  let result;
+
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error("Cloudinary returned an unreadable response.");
+  }
 
   if (!response.ok || !result.secure_url) {
+    console.error("Cloudinary upload error:", result);
+
     throw new Error(
-      result.error?.message || "Media upload failed."
+      result.error?.message ||
+      "Cloudinary could not upload this file. Check the upload preset."
     );
   }
 
   return result.secure_url;
 }
 
-/* Send a picture or audio file */
-async function sendMedia(file, kind) {
-  if (!file || !currentUser || !conversationId || !otherUserId) {
-    showStatus("Please open a conversation first.");
+
+/* Send an image, audio file or video */
+async function sendMedia(file, type) {
+  if (!file) return;
+
+  if (!currentUser || !conversationId || !otherUserId) {
+    showStatus("Open an accepted contact's chat first.");
     return;
   }
 
-  if (kind === "image" && !file.type.startsWith("image/")) {
-    showStatus("Please select a valid picture.");
+  if (uploadingMedia || sending) {
+    showStatus("Please wait for the current message to finish.");
     return;
   }
 
-  if (kind === "audio" && !file.type.startsWith("audio/")) {
-    showStatus("Please select a valid audio file.");
+  const limits = {
+    image: MAX_IMAGE_SIZE,
+    audio: MAX_AUDIO_SIZE,
+    video: MAX_VIDEO_SIZE
+  };
+
+  const labels = {
+    image: "Photo",
+    audio: "Audio",
+    video: "Video"
+  };
+
+  if (!limits[type]) {
+    showStatus("Unsupported media type.");
     return;
   }
 
-  const maxSize = kind === "image"
-    ? MAX_IMAGE_SIZE
-    : MAX_AUDIO_SIZE;
-
-  if (file.size > maxSize) {
+  if (file.size > limits[type]) {
     showStatus(
-      kind === "image"
-        ? "Picture is too large. Maximum size is 5 MB."
-        : "Audio is too large. Maximum size is 10 MB."
+      labels[type] + " is too large. Maximum size: " +
+      (type === "image" ? "5 MB." :
+       type === "audio" ? "10 MB." : "20 MB.")
     );
     return;
   }
 
-  if (uploadingMedia) {
-    showStatus("Please wait for the current upload to finish.");
+  if (file.size === 0) {
+    showStatus("This file is empty. Choose another file.");
     return;
   }
 
+  if (type === "image" &&
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    showStatus("Choose a JPEG, PNG or WebP picture.");
+    return;
+  }
+
+  if (type === "audio" && !file.type.startsWith("audio/")) {
+    showStatus("Choose a supported audio file.");
+    return;
+  }
+
+  if (type === "video" && !file.type.startsWith("video/")) {
+    showStatus("Choose a supported video file.");
+    return;
+  }
+
+  const activeConversation = conversationId;
+  const activeContact = otherUserId;
+  const caption = messageInput.value.trim();
+
   uploadingMedia = true;
+  sendButton.disabled = true;
   photoButton.disabled = true;
   audioButton.disabled = true;
-  sendButton.disabled = true;
-
-  showStatus(
-    kind === "image" ? "Uploading picture..." : "Uploading audio..."
-  );
+  videoButton.disabled = true;
 
   try {
-    const activeConversation = conversationId;
-    const activeContact = otherUserId;
+    showStatus("Uploading " + labels[type].toLowerCase() + "... Please wait.");
 
-    const mediaUrl = await uploadToCloudinary(file, kind);
+    const mediaUrl = await uploadToCloudinary(file, type);
+
+    showStatus("Upload complete. Saving message...");
 
     if (
       conversationId !== activeConversation ||
       otherUserId !== activeContact
     ) {
-      showStatus("Upload finished, but the conversation has changed.");
-      return;
+      throw new Error(
+        "The chat changed during upload. Please send the file again."
+      );
     }
 
     await addDoc(
-      collection(db, "conversations", activeConversation, "messages"),
+      collection(
+        db,
+        "conversations",
+        activeConversation,
+        "messages"
+      ),
       {
-        text: "",
-        type: kind,
+        text: caption,
+        type,
         mediaUrl,
         fileName: file.name,
         fileSize: file.size,
@@ -919,43 +1185,94 @@ async function sendMedia(file, kind) {
       }
     );
 
-    showStatus(
-      kind === "image"
-        ? "Picture sent successfully."
-        : "Audio sent successfully."
-    );
+    messageInput.value = "";
+    showStatus(labels[type] + " sent successfully.");
 
   } catch (error) {
-    console.error("Media send error:", error);
+    console.error("Media sending error:", error);
+
     showStatus(
       "Media not sent: " +
-      (error.message || "Please try again.")
+      (error.code || error.message || "Please try again.")
     );
+
   } finally {
     uploadingMedia = false;
+    sending = false;
+
+    sendButton.disabled = false;
     photoButton.disabled = false;
     audioButton.disabled = false;
-    sendButton.disabled = false;
-    photoInput.value = "";
-    audioInput.value = "";
+    videoButton.disabled = false;
   }
 }
 
-/* Choose a picture or audio file */
-photoButton.addEventListener("click", () => photoInput.click());
-audioButton.addEventListener("click", () => audioInput.click());
 
+/* Open the phone's file picker */
+photoButton.addEventListener("click", () => {
+  if (!uploadingMedia && !sending) {
+    photoInput.click();
+  }
+});
+
+audioButton.addEventListener("click", () => {
+  if (!uploadingMedia && !sending) {
+    audioInput.click();
+  }
+});
+
+videoButton.addEventListener("click", () => {
+  if (!uploadingMedia && !sending) {
+    videoInput.click();
+  }
+});
+
+
+/* Upload selected photos */
 photoInput.addEventListener("change", async () => {
   const file = photoInput.files?.[0];
-  if (file) await sendMedia(file, "image");
+
+  try {
+    if (file) {
+      await sendMedia(file, "image");
+    }
+  } finally {
+    photoInput.value = "";
+  }
 });
 
+
+/* Upload selected audio */
 audioInput.addEventListener("change", async () => {
   const file = audioInput.files?.[0];
-  if (file) await sendMedia(file, "audio");
+
+  try {
+    if (file) {
+      await sendMedia(file, "audio");
+    }
+  } finally {
+    audioInput.value = "";
+  }
 });
 
-/* Return to contacts */
+
+/* Upload selected videos */
+videoInput.addEventListener("change", async () => {
+  const file = videoInput.files?.[0];
+
+  try {
+    if (file) {
+      await sendMedia(file, "video");
+    }
+  } finally {
+    videoInput.value = "";
+  }
+});
+
+
+/* PART 3 ENDS HERE */
+  
+/* Return from chat to the accepted contacts list */
 backButton.addEventListener("click", () => {
   stopChatListener();
 
@@ -965,44 +1282,57 @@ backButton.addEventListener("click", () => {
   chatScreen.style.display = "none";
   contactList.style.display = "flex";
 
-  $("pageTitle").textContent = "My Messages";
-  $("pageSubtitle").textContent =
-    "Select an accepted contact to start chatting.";
-
   messageForm.hidden = true;
   attachmentButtons.hidden = true;
   mediaHelp.hidden = true;
 
-  loadContacts();
+  $("pageTitle").textContent = "My Messages";
+  $("pageSubtitle").textContent =
+    "Select an accepted contact to start chatting.";
+
+  showStatus("Select an accepted contact.");
 });
 
-/* Check the signed-in user */
-onAuthStateChanged(
-  auth,
-  async user => {
-    if (!user) {
-      showStatus("Please log in first. Redirecting...");
-      location.href = "login.html";
-      return;
-    }
 
-    currentUser = user;
+/* Handle Firebase authentication */
+onAuthStateChanged(auth, async user => {
+  stopChatListener();
+
+  currentUser = user;
+  conversationId = null;
+  otherUserId = null;
+
+  if (!user) {
+    showStatus("Please log in to view your messages.");
+    window.location.replace("login.html");
+    return;
+  }
+
+  showStatus("Signed in. Loading messages...");
+
+  try {
+    await loadContacts();
 
     if (requestedUserId) {
+      if (requestedUserId === user.uid) {
+        showStatus("You cannot message yourself.");
+        return;
+      }
+
       await openChat(requestedUserId);
-    } else {
-      await loadContacts();
     }
-  },
-  error => {
-    console.error("Authentication error:", error);
+  } catch (error) {
+    console.error("Authentication setup error:", error);
+
     showStatus(
-      "Sign-in connection failed: " +
-      (error.code || error.message || "Please refresh and log in again.")
+      "Unable to load your messages: " +
+      (error.code || error.message || "Please refresh.")
     );
   }
-);
+});
 
+
+/* PART 4 ENDS HERE */
 </script>
 </body>
 </html>
