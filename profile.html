@@ -4,7 +4,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B1424">
 <title>My Profile | SIMPLEXPING</title>
+
 <style>
 * {
   box-sizing: border-box;
@@ -33,6 +35,7 @@ header {
 .brand {
   font-size: 22px;
   font-weight: bold;
+  white-space: nowrap;
 }
 
 .brand span {
@@ -43,6 +46,10 @@ header a {
   color: #A8C9F7;
   text-decoration: none;
   font-size: 13px;
+}
+
+header a:hover {
+  text-decoration: underline;
 }
 
 .container {
@@ -62,6 +69,7 @@ header a {
 .page-title p {
   color: #9AAAC0;
   font-size: 14px;
+  line-height: 1.5;
 }
 
 .profile-card {
@@ -106,6 +114,7 @@ header a {
 
 .profile-info {
   min-width: 0;
+  flex: 1;
 }
 
 .profile-info h2 {
@@ -257,7 +266,7 @@ button:disabled {
   color: #A2E8D1;
 }
 
-@media(max-width: 500px) {
+@media (max-width: 500px) {
   body {
     padding: 15px;
   }
@@ -283,6 +292,10 @@ button:disabled {
 
   header .brand {
     font-size: 19px;
+  }
+
+  header a {
+    text-align: right;
   }
 
   .actions button {
@@ -312,7 +325,11 @@ button:disabled {
 
       <div class="avatar" id="avatar">
         <span id="avatarInitial">S</span>
-        <img id="avatarImage" alt="Your profile picture">
+        <img
+          id="avatarImage"
+          alt="Your profile picture"
+          referrerpolicy="no-referrer"
+        >
       </div>
 
       <div class="profile-info">
@@ -321,7 +338,11 @@ button:disabled {
         <span class="online-status">● Account active</span>
 
         <div class="photo-actions">
-          <button type="button" class="photo-btn" id="choosePhotoBtn">
+          <button
+            type="button"
+            class="photo-btn"
+            id="choosePhotoBtn"
+          >
             Change profile picture
           </button>
 
@@ -332,7 +353,7 @@ button:disabled {
           >
 
           <p class="photo-help">
-            JPG, PNG or WebP. Maximum size: 200 KB.
+            JPG, PNG or WebP. Maximum size: 2 MB.
           </p>
         </div>
       </div>
@@ -341,7 +362,12 @@ button:disabled {
 
     <h3 class="section-title">Personal information</h3>
 
-    <div id="message" class="message" role="alert"></div>
+    <div
+      id="message"
+      class="message"
+      role="alert"
+      aria-live="polite"
+    ></div>
 
     <form id="profileForm">
 
@@ -351,6 +377,7 @@ button:disabled {
           type="text"
           id="fullName"
           maxlength="80"
+          autocomplete="name"
           required
           placeholder="Enter your full name"
         >
@@ -363,18 +390,28 @@ button:disabled {
           id="username"
           maxlength="20"
           minlength="3"
+          autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
+          pattern="[A-Za-z0-9_]{3,20}"
+          title="Use 3–20 letters, numbers, or underscores."
           placeholder="Choose a username"
           required
         >
         <p class="help">
           Use 3–20 letters, numbers, or underscores.
-          Usernames must be unique.
+          Usernames are not yet checked for uniqueness.
         </p>
       </div>
 
       <div class="form-group">
         <label for="email">Email address</label>
-        <input type="email" id="email" disabled>
+        <input
+          type="email"
+          id="email"
+          autocomplete="email"
+          disabled
+        >
         <p class="help">
           Your email is managed by Firebase Authentication.
         </p>
@@ -414,7 +451,9 @@ import {
 
 const CLOUD_NAME = "ewzaj6yw";
 const UPLOAD_PRESET = "simplexping_profiles";
-const MAX_FILE_SIZE = 200 * 1024;
+
+// Maximum profile picture size: 2 MiB.
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 const form = document.getElementById("profileForm");
 const message = document.getElementById("message");
@@ -423,14 +462,22 @@ const photoInput = document.getElementById("photoInput");
 const choosePhotoBtn = document.getElementById("choosePhotoBtn");
 const avatarInitial = document.getElementById("avatarInitial");
 const avatarImage = document.getElementById("avatarImage");
+const fullNameInput = document.getElementById("fullName");
+const usernameInput = document.getElementById("username");
+const displayName = document.getElementById("displayName");
 
 let currentUser = null;
-let originalUsername = "";
 let uploadInProgress = false;
+let profileLoaded = false;
 
 function showMessage(text, type) {
   message.textContent = text;
   message.className = "message " + type;
+}
+
+function clearMessage() {
+  message.textContent = "";
+  message.className = "message";
 }
 
 function updateAvatar(name, photoURL = "") {
@@ -440,9 +487,9 @@ function updateAvatar(name, photoURL = "") {
   avatarInitial.textContent = firstLetter;
 
   if (photoURL) {
-    avatarImage.src = photoURL;
     avatarImage.style.display = "block";
     avatarInitial.style.display = "none";
+    avatarImage.src = photoURL;
   } else {
     avatarImage.removeAttribute("src");
     avatarImage.style.display = "none";
@@ -451,25 +498,49 @@ function updateAvatar(name, photoURL = "") {
 }
 
 avatarImage.addEventListener("error", () => {
+  avatarImage.removeAttribute("src");
   avatarImage.style.display = "none";
   avatarInitial.style.display = "block";
 });
 
+function getErrorMessage(error, fallback) {
+  const code = error?.code || "";
+
+  if (
+    code === "permission-denied" ||
+    code === "firestore/permission-denied"
+  ) {
+    return "Access denied. Please check your Firestore security rules.";
+  }
+
+  if (
+    code === "auth/network-request-failed" ||
+    code === "unavailable"
+  ) {
+    return "Network problem. Check your internet connection and try again.";
+  }
+
+  return error?.message || fallback;
+}
+
+// Load the signed-in user's profile.
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
+    currentUser = null;
     window.location.replace("login.html");
     return;
   }
 
   currentUser = user;
-
-  document.getElementById("displayEmail").textContent =
-    user.email || "";
-
-  document.getElementById("email").value =
-    user.email || "";
+  profileLoaded = false;
 
   try {
+    document.getElementById("displayEmail").textContent =
+      user.email || "";
+
+    document.getElementById("email").value =
+      user.email || "";
+
     const userRef = doc(db, "users", user.uid);
     const snapshot = await getDoc(userRef);
 
@@ -480,41 +551,49 @@ onAuthStateChanged(auth, async (user) => {
     const name = profile.fullName || user.displayName || "";
     const photoURL = profile.photoURL || user.photoURL || "";
 
-    document.getElementById("fullName").value = name;
+    fullNameInput.value = name;
+    usernameInput.value = profile.username || "";
 
-    document.getElementById("username").value =
-      profile.username || "";
-
-    document.getElementById("displayName").textContent =
-      name || "SIMPLEXPING User";
-
-    originalUsername = profile.username || "";
+    displayName.textContent = name || "SIMPLEXPING User";
 
     updateAvatar(name, photoURL);
+
+    profileLoaded = true;
 
   } catch (error) {
     console.error("Profile loading error:", error);
 
     showMessage(
-      "Unable to load profile information. Please refresh the page.",
+      "Unable to load profile information. Please refresh the page and try again.",
       "error"
     );
   }
 });
 
-// Open the phone gallery.
+// Open the phone's image picker.
 choosePhotoBtn.addEventListener("click", () => {
   if (!currentUser) {
     showMessage("Please sign in first.", "error");
     return;
   }
 
+  if (!profileLoaded) {
+    showMessage(
+      "Please wait for your profile to finish loading.",
+      "error"
+    );
+    return;
+  }
+
+  if (uploadInProgress) return;
+
+  clearMessage();
   photoInput.click();
 });
 
-// Upload a selected picture to Cloudinary.
+// Upload the selected image to Cloudinary.
 photoInput.addEventListener("change", async () => {
-  const file = photoInput.files[0];
+  const file = photoInput.files?.[0];
 
   if (!file) return;
 
@@ -526,7 +605,7 @@ photoInput.addEventListener("change", async () => {
 
   if (!allowedTypes.includes(file.type)) {
     showMessage(
-      "Choose a JPG, PNG, or WebP image.",
+      "Choose a valid JPG, PNG, or WebP image.",
       "error"
     );
     photoInput.value = "";
@@ -535,7 +614,16 @@ photoInput.addEventListener("change", async () => {
 
   if (file.size > MAX_FILE_SIZE) {
     showMessage(
-      "Your picture is larger than 200 KB. Please choose a smaller image.",
+      "Your picture is larger than 2 MB. Please choose a smaller image.",
+      "error"
+    );
+    photoInput.value = "";
+    return;
+  }
+
+  if (file.size === 0) {
+    showMessage(
+      "The selected image is empty. Please choose another image.",
       "error"
     );
     photoInput.value = "";
@@ -549,6 +637,7 @@ photoInput.addEventListener("change", async () => {
 
   uploadInProgress = true;
   choosePhotoBtn.disabled = true;
+  saveBtn.disabled = true;
   choosePhotoBtn.textContent = "Uploading...";
 
   try {
@@ -565,24 +654,34 @@ photoInput.addEventListener("change", async () => {
       }
     );
 
-    const result = await response.json();
+    let result;
+
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error(
+        "Cloudinary returned an invalid response. Please try again."
+      );
+    }
 
     if (!response.ok) {
       console.error("Cloudinary upload error:", result);
 
       throw new Error(
         result.error?.message ||
-        "Cloudinary could not upload this picture."
+        "Cloudinary could not upload this picture. Check your upload preset and try again."
       );
     }
 
     if (!result.secure_url) {
-      throw new Error("Cloudinary did not return an image URL.");
+      throw new Error(
+        "Cloudinary did not return a secure image URL."
+      );
     }
 
     const photoURL = result.secure_url;
 
-    // Save the image URL without deleting other profile fields.
+    // Save the picture URL without removing existing profile fields.
     const userRef = doc(db, "users", currentUser.uid);
 
     await setDoc(userRef, {
@@ -592,17 +691,15 @@ photoInput.addEventListener("change", async () => {
       merge: true
     });
 
-    // Update Firebase Authentication's display profile too.
+    // Update the Firebase Authentication profile.
     await updateProfile(currentUser, {
       photoURL: photoURL
     });
 
-    const currentName =
-      document.getElementById("fullName").value.trim() ||
-      currentUser.displayName ||
-      "";
-
-    updateAvatar(currentName, photoURL);
+    updateAvatar(
+      fullNameInput.value.trim() || currentUser.displayName || "",
+      photoURL
+    );
 
     showMessage(
       "Your profile picture has been uploaded and saved successfully!",
@@ -613,24 +710,36 @@ photoInput.addEventListener("change", async () => {
     console.error("Profile picture upload error:", error);
 
     showMessage(
-      error.message ||
-      "Unable to upload your picture. Please try again.",
+      getErrorMessage(
+        error,
+        "Unable to upload your picture. Please check your internet connection and try again."
+      ),
       "error"
     );
 
   } finally {
     uploadInProgress = false;
     choosePhotoBtn.disabled = false;
+    saveBtn.disabled = false;
     choosePhotoBtn.textContent = "Change profile picture";
     photoInput.value = "";
   }
 });
 
+// Save the user's name and username.
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!currentUser) {
     showMessage("Please sign in first.", "error");
+    return;
+  }
+
+  if (!profileLoaded) {
+    showMessage(
+      "Your profile has not finished loading. Please try again.",
+      "error"
+    );
     return;
   }
 
@@ -642,16 +751,17 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  const fullName =
-    document.getElementById("fullName").value.trim();
+  const fullName = fullNameInput.value.trim();
 
-  const username =
-    document.getElementById("username")
-      .value.trim()
-      .toLowerCase();
+  const username = usernameInput.value
+    .trim()
+    .toLowerCase();
 
   if (fullName.length < 2) {
-    showMessage("Please enter your full name.", "error");
+    showMessage(
+      "Please enter your full name using at least 2 characters.",
+      "error"
+    );
     return;
   }
 
@@ -664,12 +774,13 @@ form.addEventListener("submit", async (event) => {
   }
 
   saveBtn.disabled = true;
+  choosePhotoBtn.disabled = true;
   saveBtn.textContent = "Saving...";
 
   try {
     const userRef = doc(db, "users", currentUser.uid);
 
-    // Merge preserves the existing photoURL field.
+    // Merge preserves the existing photoURL and other fields.
     await setDoc(userRef, {
       uid: currentUser.uid,
       fullName: fullName,
@@ -684,10 +795,13 @@ form.addEventListener("submit", async (event) => {
       displayName: fullName
     });
 
-    originalUsername = username;
+    displayName.textContent = fullName;
 
-    document.getElementById("displayName").textContent =
-      fullName;
+    // Preserve the current profile picture.
+    updateAvatar(
+      fullName,
+      currentUser.photoURL || ""
+    );
 
     showMessage(
       "Your profile has been updated successfully.",
@@ -698,18 +812,27 @@ form.addEventListener("submit", async (event) => {
     console.error("Profile update error:", error);
 
     showMessage(
-      "Unable to save your profile. Please check your internet connection and Firestore permissions.",
+      getErrorMessage(
+        error,
+        "Unable to save your profile. Please check your internet connection and Firestore permissions."
+      ),
       "error"
     );
 
   } finally {
     saveBtn.disabled = false;
+    choosePhotoBtn.disabled = false;
     saveBtn.textContent = "Save Changes";
   }
 });
 
+// Sign out.
 document.getElementById("logoutBtn")
   .addEventListener("click", async () => {
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    logoutBtn.disabled = true;
+
     try {
       await signOut(auth);
       window.location.replace("login.html");
@@ -721,9 +844,12 @@ document.getElementById("logoutBtn")
         "Unable to log out. Please try again.",
         "error"
       );
+
+      logoutBtn.disabled = false;
     }
   });
 </script>
 
 </body>
-</html>
+          </html>
+        
