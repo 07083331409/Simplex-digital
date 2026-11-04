@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -407,7 +406,7 @@ button:disabled {
   flex-direction: column;
   gap: 16px;
   padding: 65px 18px 28px;
-  background: rgba(0,0,0,.94);
+  background: rgba(0, 0, 0, .94);
 }
 
 [hidden],
@@ -539,7 +538,7 @@ button:disabled {
          accept="image/jpeg,image/png,image/webp" hidden>
 
   <input type="file" id="audioInput"
-         accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg" hidden>
+         accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg,.amr" hidden>
 
   <input type="file" id="videoInput"
          accept="video/*" hidden>
@@ -578,7 +577,6 @@ button:disabled {
     <button type="button" class="emoji-choice" data-emoji="🔥">🔥</button>
     <button type="button" class="emoji-choice" data-emoji="🎉">🎉</button>
     <button type="button" class="emoji-choice" data-emoji="💯">💯</button>
-    <button type="button" class="emoji-choice" data-emoji="🙏">🙏</button>
     <button type="button" class="emoji-choice" data-emoji="💪">💪</button>
     <button type="button" class="emoji-choice" data-emoji="🤝">🤝</button>
     <button type="button" class="emoji-choice" data-emoji="👋">👋</button>
@@ -614,7 +612,7 @@ button:disabled {
 </div>
 
 <script type="module">
-  
+
 import { auth, db } from "./firebase.js";
 
 import {
@@ -638,14 +636,13 @@ import {
 
 /* Cloudinary configuration */
 const CLOUD_NAME = "ewzaj6yw";
-const PROFILE_UPLOAD_PRESET = "simplexping_profiles";
 const CHAT_MEDIA_UPLOAD_PRESET = "simplexping_chat_media";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
 
-/* HTML elements: IDs must match Part 1 */
+/* HTML elements */
 const contactList = document.getElementById("contactList");
 const chatScreen = document.getElementById("chatScreen");
 const messagesBox = document.getElementById("messages");
@@ -798,8 +795,8 @@ function stopChatListener() {
 /* Build the same conversation ID for both participants */
 function conversationIdFor(uidA, uidB) {
   return [uidA, uidB].sort().join("_");
-  }
-  
+}
+
 /* Load accepted contacts */
 async function loadContacts() {
   if (!currentUser) return;
@@ -902,14 +899,14 @@ async function loadContacts() {
       displayedCount++;
     });
 
-        if (displayedCount === 0) {
+    if (displayedCount === 0) {
       const empty = document.createElement("p");
       empty.className = "empty";
       empty.textContent = "Contact profiles could not be loaded.";
       contactList.appendChild(empty);
       showStatus("Could not load contact profiles.");
       return;
-        }
+    }
 
     showStatus("Your accepted contacts are ready.");
   } catch (error) {
@@ -1073,7 +1070,21 @@ function renderMessage(messageDocument) {
   } else if (data.type === "audio" && data.mediaUrl) {
     const audio = document.createElement("audio");
     audio.className = "message-audio";
-    audio.src = data.mediaUrl;
+
+    /*
+     * Request MP3 delivery from Cloudinary for audio assets.
+     * This helps browsers play formats such as AMR that they
+     * may not support natively.
+     */
+    const mediaUrl = data.mediaUrl;
+
+    audio.src = mediaUrl.includes("/video/upload/")
+      ? mediaUrl.replace(
+          "/video/upload/",
+          "/video/upload/f_mp3/"
+        )
+      : mediaUrl;
+
     audio.controls = true;
     audio.preload = "metadata";
     bubble.appendChild(audio);
@@ -1212,8 +1223,8 @@ async function openChat(uid) {
     console.error("Could not open conversation:", error);
     showStatus("Could not open this conversation. Please try again.");
   }
-  }
-  
+}
+
 /* Send a text message, including emoji-only messages */
 messageForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -1388,7 +1399,7 @@ async function sendMedia(file, type) {
     : "";
 
   const allowedAudioExtensions = [
-    "m4a", "mp3", "wav", "webm", "ogg"
+    "m4a", "mp3", "wav", "webm", "ogg", "amr"
   ];
 
   const audioExtensionAccepted =
@@ -1585,8 +1596,7 @@ onAuthStateChanged(auth, async (user) => {
     showStatus("Could not initialize messages. Please refresh and try again.");
   }
 });
+
 </script>
 </body>
 </html>
-
-                                                                 
