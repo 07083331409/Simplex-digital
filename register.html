@@ -112,6 +112,96 @@ input::placeholder {
   color: #71839D;
 }
 
+.picture-group {
+  margin-bottom: 20px;
+}
+
+.picture-upload {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #31435E;
+  border-radius: 12px;
+  background: #0D192B;
+}
+
+.picture-preview {
+  width: 76px;
+  height: 76px;
+  flex: 0 0 76px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid #3978D5;
+  border-radius: 50%;
+  background: #1B3556;
+  color: #A8C9F7;
+  font-size: 25px;
+}
+
+.picture-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.picture-details {
+  min-width: 0;
+}
+
+.picture-button {
+  padding: 10px 13px;
+  border: 1px solid #355579;
+  border-radius: 8px;
+  background: #203D60;
+  color: #DCEBFF;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.picture-button:hover {
+  background: #315782;
+}
+
+.picture-help {
+  margin-top: 7px;
+  color: #8293AA;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+#pictureInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.submit-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  vertical-align: -2px;
+  border: 2px solid rgba(255, 255, 255, .45);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+.submit-spinner[hidden] {
+  display: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .password-note {
   font-size: 11px;
   color: #8293AA;
@@ -214,6 +304,27 @@ input::placeholder {
 
   <form id="registerForm">
 
+    <div class="picture-group">
+      <label for="pictureInput">Profile picture <span aria-hidden="true">*</span></label>
+      <div class="picture-upload">
+        <div class="picture-preview" id="picturePreview" aria-label="Profile picture preview">
+          <span id="picturePlaceholder" aria-hidden="true">+</span>
+          <img id="picturePreviewImage" alt="Selected profile picture preview" hidden>
+        </div>
+        <div class="picture-details">
+          <button type="button" class="picture-button" id="choosePictureBtn">
+            Choose picture
+          </button>
+          <p class="picture-help" id="pictureHelp">
+            Required. JPEG, PNG or WebP, up to 2 MB.
+          </p>
+        </div>
+      </div>
+      <input type="file" id="pictureInput"
+        accept="image/jpeg,image/png,image/webp"
+        aria-describedby="pictureHelp">
+    </div>
+
     <div class="form-group">
       <label for="fullName">Full name</label>
       <input type="text" id="fullName"
@@ -247,7 +358,10 @@ input::placeholder {
     </div>
 
     <button type="submit" class="submit-btn" id="submitBtn">
+      <span class="submit-spinner" id="submitSpinner" aria-hidden="true" hidden></span>
+      <span id="submitLabel">
       Create Account
+      </span>
     </button>
 
   </form>
@@ -268,6 +382,25 @@ input::placeholder {
 const form = document.getElementById("registerForm");
 const message = document.getElementById("message");
 const submitBtn = document.getElementById("submitBtn");
+const submitLabel = document.getElementById("submitLabel");
+const submitSpinner = document.getElementById("submitSpinner");
+const pictureInput = document.getElementById("pictureInput");
+const choosePictureBtn = document.getElementById("choosePictureBtn");
+const picturePreviewImage = document.getElementById("picturePreviewImage");
+const picturePlaceholder = document.getElementById("picturePlaceholder");
+
+const CLOUD_NAME = "ewzaj6yw";
+const UPLOAD_PRESET = "simplexping_profiles";
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp"
+];
+
+let selectedPicture = null;
+let previewObjectURL = null;
+let submitting = false;
 
 function showMessage(text, type) {
   message.textContent = text;
@@ -288,8 +421,101 @@ function showError(error, stage) {
   );
 }
 
+function showPicturePreview(file) {
+  selectedPicture = file;
+
+  if (previewObjectURL) {
+    URL.revokeObjectURL(previewObjectURL);
+  }
+
+  previewObjectURL = URL.createObjectURL(file);
+  picturePreviewImage.src = previewObjectURL;
+  picturePreviewImage.hidden = false;
+  picturePlaceholder.hidden = true;
+  choosePictureBtn.textContent = "Change picture";
+}
+
+pictureInput.addEventListener("change", () => {
+  const file = pictureInput.files?.[0];
+  if (!file) return;
+
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    showMessage("Choose a JPEG, PNG, or WebP image.", "error");
+    pictureInput.value = "";
+    return;
+  }
+
+  if (file.size === 0 || file.size > MAX_FILE_SIZE) {
+    showMessage(
+      file.size === 0
+        ? "The selected picture is empty. Choose another image."
+        : "Your picture is larger than 2 MB. Choose a smaller image.",
+      "error"
+    );
+    pictureInput.value = "";
+    return;
+  }
+
+  showPicturePreview(file);
+  showMessage("Picture selected. You can change it before creating your account.", "success");
+});
+
+choosePictureBtn.addEventListener("click", () => {
+  if (!submitting) pictureInput.click();
+});
+
+async function uploadPicture(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
+
+  let response;
+
+  try {
+    response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      { method: "POST", body: formData }
+    );
+  } catch {
+    throw new Error("Could not connect to Cloudinary. Check your connection and try again.");
+  }
+
+  let result;
+
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error("Cloudinary returned an invalid response. Please try again.");
+  }
+
+  if (!response.ok || !result.secure_url) {
+    throw new Error(
+      result.error?.message || "Cloudinary could not upload your picture. Please try again."
+    );
+  }
+
+  return result.secure_url;
+}
+
+function setSubmitting(isSubmitting, label = "Create Account") {
+  submitting = isSubmitting;
+  submitBtn.disabled = isSubmitting;
+  choosePictureBtn.disabled = isSubmitting;
+  pictureInput.disabled = isSubmitting;
+  submitSpinner.hidden = !isSubmitting;
+  submitLabel.textContent = label;
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+
+  if (submitting) return;
+
+  if (!selectedPicture) {
+    showMessage("Please choose a profile picture before creating your account.", "error");
+    choosePictureBtn.focus();
+    return;
+  }
 
   const fullName = document.getElementById("fullName").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -311,12 +537,15 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Creating account...";
+  setSubmitting(true, "Uploading picture...");
 
-  let stage = "Loading Firebase";
+  let stage = "Uploading profile picture";
 
   try {
+
+    const photoURL = await uploadPicture(selectedPicture);
+
+    setSubmitting(true, "Creating account...");
 
     // Load Firebase modules and configuration.
     const firebase = await import("./firebase.js");
@@ -346,10 +575,11 @@ form.addEventListener("submit", async (event) => {
 
     const user = credential.user;
 
-    stage = "Saving user name";
+    stage = "Saving user name and profile picture";
 
     await authFunctions.updateProfile(user, {
-      displayName: fullName
+      displayName: fullName,
+      photoURL: photoURL
     });
 
     stage = "Saving user profile in Firestore";
@@ -360,7 +590,7 @@ form.addEventListener("submit", async (event) => {
         uid: user.uid,
         fullName: fullName,
         email: user.email,
-        photoURL: null,
+        photoURL: photoURL,
         status: "offline",
         createdAt: firestoreFunctions.serverTimestamp()
       }
@@ -372,6 +602,7 @@ form.addEventListener("submit", async (event) => {
     );
 
     form.reset();
+    selectedPicture = null;
 
     setTimeout(() => {
       window.location.href = "login.html?registered=1";
@@ -382,9 +613,7 @@ form.addEventListener("submit", async (event) => {
     showError(error, stage);
 
   } finally {
-
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Create Account";
+    setSubmitting(false);
 
   }
 });
