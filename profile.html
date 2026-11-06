@@ -444,8 +444,8 @@ import {
 
 import {
   doc,
-  getDoc,
   setDoc,
+  onSnapshot,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
@@ -469,6 +469,8 @@ const displayName = document.getElementById("displayName");
 let currentUser = null;
 let uploadInProgress = false;
 let profileLoaded = false;
+let profileFormDirty = false;
+let stopProfileListener = null;
 
 function showMessage(text, type) {
   message.textContent = text;
@@ -481,10 +483,12 @@ function clearMessage() {
 }
 
 function updateAvatar(name, photoURL = "") {
-  const firstLetter =
-    name.trim().charAt(0).toUpperCase() || "S";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const initials = parts.length > 1
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : (parts[0]?.[0] || "S").toUpperCase();
 
-  avatarInitial.textContent = firstLetter;
+  avatarInitial.textContent = initials;
 
   if (photoURL) {
     avatarImage.style.display = "block";
@@ -523,8 +527,21 @@ function getErrorMessage(error, fallback) {
   return error?.message || fallback;
 }
 
-// Load the signed-in user's profile.
-onAuthStateChanged(auth, async (user) => {
+fullNameInput.addEventListener("input", () => {
+  profileFormDirty = true;
+});
+
+usernameInput.addEventListener("input", () => {
+  profileFormDirty = true;
+});
+
+// Keep the signed-in user's profile current across open tabs and devices.
+onAuthStateChanged(auth, (user) => {
+  if (typeof stopProfileListener === "function") {
+    stopProfileListener();
+    stopProfileListener = null;
+  }
+
   if (!user) {
     currentUser = null;
     window.location.replace("login.html");
@@ -533,41 +550,44 @@ onAuthStateChanged(auth, async (user) => {
 
   currentUser = user;
   profileLoaded = false;
+  profileFormDirty = false;
 
-  try {
-    document.getElementById("displayEmail").textContent =
-      user.email || "";
+  document.getElementById("displayEmail").textContent =
+    user.email || "";
 
-    document.getElementById("email").value =
-      user.email || "";
+  document.getElementById("email").value =
+    user.email || "";
 
-    const userRef = doc(db, "users", user.uid);
-    const snapshot = await getDoc(userRef);
+  const userRef = doc(db, "users", user.uid);
 
-    const profile = snapshot.exists()
-      ? snapshot.data()
-      : {};
+  stopProfileListener = onSnapshot(
+    userRef,
+    snapshot => {
+      const profile = snapshot.exists()
+        ? snapshot.data()
+        : {};
 
-    const name = profile.fullName || user.displayName || "";
-    const photoURL = profile.photoURL || user.photoURL || "";
+      const name = profile.fullName || user.displayName || "";
+      const photoURL = profile.photoURL || user.photoURL || "";
 
-    fullNameInput.value = name;
-    usernameInput.value = profile.username || "";
+      if (!profileFormDirty) {
+        fullNameInput.value = name;
+        usernameInput.value = profile.username || "";
+      }
 
-    displayName.textContent = name || "SIMPLEXPING User";
+      displayName.textContent = name || "SIMPLEXPING User";
+      updateAvatar(name, photoURL);
+      profileLoaded = true;
+    },
+    error => {
+      console.error("Profile loading error:", error);
 
-    updateAvatar(name, photoURL);
-
-    profileLoaded = true;
-
-  } catch (error) {
-    console.error("Profile loading error:", error);
-
-    showMessage(
-      "Unable to load profile information. Please refresh the page and try again.",
-      "error"
-    );
-  }
+      showMessage(
+        "Unable to load profile information. Please refresh the page and try again.",
+        "error"
+      );
+    }
+  );
 });
 
 // Open the phone's image picker.
@@ -790,6 +810,8 @@ form.addEventListener("submit", async (event) => {
     }, {
       merge: true
     });
+
+    profileFormDirty = false;
 
     await updateProfile(currentUser, {
       displayName: fullName

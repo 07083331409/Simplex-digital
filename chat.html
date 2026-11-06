@@ -84,6 +84,7 @@ h1 {
 }
 
 .avatar {
+  position: relative;
   width: 45px;
   height: 45px;
   border-radius: 50%;
@@ -98,8 +99,12 @@ h1 {
 }
 
 .avatar img {
+  position: absolute;
+  inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
+  border-radius: 50%;
   object-fit: cover;
 }
 
@@ -186,7 +191,7 @@ button:disabled {
 }
 
 .message {
-  max-width: 88%;
+  max-width: min(88%, calc(100% - 38px));
   padding: 12px 15px;
   border-radius: 15px;
   font-size: 14px;
@@ -197,18 +202,58 @@ button:disabled {
   -webkit-tap-highlight-color: transparent;
 }
 
+.message-row {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.message-row.sent {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.message-row.received {
+  justify-content: flex-start;
+}
+
+.message-avatar {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #49617f;
+  border-radius: 50%;
+  background: #28518a;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.message-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .message:active {
   filter: brightness(1.15);
 }
 
 .sent {
-  align-self: flex-end;
   background: #285b9b;
   border-bottom-right-radius: 4px;
 }
 
 .received {
-  align-self: flex-start;
   background: #20344f;
   border-bottom-left-radius: 4px;
 }
@@ -765,6 +810,13 @@ let otherUserId = null;
 let otherUserName = "Contact";
 
 let stopMessagesListener = null;
+let stopOwnProfileListener = null;
+let contactProfileListeners = new Map();
+let contactProfiles = new Map();
+let expectedContactProfileIds = new Set();
+let loadedContactProfileIds = new Set();
+let currentUserProfile = {};
+let currentMessageDocuments = [];
 let sending = false;
 let uploadingMedia = false;
 let chatReady = false;
@@ -816,6 +868,8 @@ function setAvatar(element, name, photoURL = "") {
       ? name.trim()
       : "User";
 
+  element.textContent = getInitials(safeName);
+
   if (typeof photoURL === "string" && photoURL.trim()) {
     const image = document.createElement("img");
 
@@ -824,9 +878,7 @@ function setAvatar(element, name, photoURL = "") {
     image.loading = "lazy";
 
     image.addEventListener("error", () => {
-      element.replaceChildren();
-      element.textContent =
-        safeName.charAt(0).toUpperCase();
+      image.remove();
       element.classList.remove("has-photo");
     }, { once: true });
 
@@ -842,9 +894,47 @@ function setAvatar(element, name, photoURL = "") {
     return;
   }
 
-  element.textContent = safeName.charAt(0).toUpperCase();
   element.classList.remove("has-photo");
   element.onclick = null;
+}
+
+function getInitials(name) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return parts.length > 1
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : (parts[0]?.[0] || "U").toUpperCase();
+}
+
+function createMessageAvatar(name, photoURL = "") {
+  const avatar = document.createElement("div");
+  avatar.className = "message-avatar";
+  avatar.textContent = getInitials(name);
+  avatar.setAttribute("aria-label", name + " profile picture");
+
+  if (typeof photoURL === "string" && photoURL.trim()) {
+    const image = document.createElement("img");
+    image.src = photoURL;
+    image.alt = "";
+    image.loading = "lazy";
+    image.addEventListener("error", () => image.remove(), { once: true });
+    avatar.appendChild(image);
+  }
+
+  return avatar;
+}
+
+function renderCurrentMessages() {
+  if (!conversationId) return;
+
+  messagesBox.replaceChildren();
+
+  if (currentMessageDocuments.length === 0) {
+    showEmpty(chatReady ? "No messages yet. Say hello!" : "Loading messages...");
+    return;
+  }
+
+  currentMessageDocuments.forEach(renderMessage);
+  messagesBox.scrollTop = messagesBox.scrollHeight;
 }
 
 /* Stop listening to the previous conversation */
@@ -900,83 +990,124 @@ async function loadContacts() {
       return;
     }
 
-    const contactProfiles = await Promise.all(
-      Array.from(contactIds).map(async (uid) => {
-        try {
-          const profileSnapshot = await getDoc(doc(db, "users", uid));
+    syncContactProfileListeners(contactIds);
 
-          if (!profileSnapshot.exists()) return null;
-
-          return {
-            uid,
-            profile: profileSnapshot.data()
-          };
-        } catch (error) {
-          console.error("Could not load contact profile:", error);
-          return null;
-        }
-      })
-    );
-
-    contactList.replaceChildren();
-
-    let displayedCount = 0;
-
-    contactProfiles.forEach((entry) => {
-      if (!entry) return;
-
-      const { uid, profile } = entry;
-      const name =
-        typeof profile.fullName === "string" &&
-        profile.fullName.trim()
-          ? profile.fullName.trim()
-          : "SIMPLEXPING member";
-
-      const contact = document.createElement("div");
-      contact.className = "contact";
-
-      const avatar = document.createElement("div");
-      avatar.className = "avatar";
-      setAvatar(avatar, name, profile.photoURL || "");
-
-      const info = document.createElement("div");
-      info.className = "contact-info";
-
-      const heading = document.createElement("h3");
-      heading.textContent = name;
-
-      const description = document.createElement("p");
-      description.textContent = "Accepted contact";
-
-      info.append(heading, description);
-
-      const openButton = document.createElement("button");
-      openButton.type = "button";
-      openButton.textContent = "Message";
-
-      openButton.addEventListener("click", () => {
-        openChat(uid);
-      });
-
-      contact.append(avatar, info, openButton);
-      contactList.appendChild(contact);
-      displayedCount++;
-    });
-
-    if (displayedCount === 0) {
-      const empty = document.createElement("p");
-      empty.className = "empty";
-      empty.textContent = "Contact profiles could not be loaded.";
-      contactList.appendChild(empty);
-      showStatus("Could not load contact profiles.");
-      return;
+    if (contactIds.size === 0) {
+      showEmpty("You have no accepted contacts yet. Accept a contact request first.");
+      showStatus("No accepted contacts found.");
+    } else {
+      showEmpty("Loading contact profiles...");
+      showStatus("Loading your contacts...");
     }
-
-    showStatus("Your accepted contacts are ready.");
   } catch (error) {
     console.error("Error loading contacts:", error);
     showStatus("Could not load contacts. Please refresh and try again.");
   }
+}
+
+function renderContactList() {
+  contactList.replaceChildren();
+
+  const entries = Array.from(expectedContactProfileIds)
+    .map(uid => ({ uid, profile: contactProfiles.get(uid) }))
+    .filter(entry => entry.profile);
+
+  entries.forEach(({ uid, profile }) => {
+    const name =
+      typeof profile.fullName === "string" && profile.fullName.trim()
+        ? profile.fullName.trim()
+        : "SIMPLEXPING member";
+
+    const contact = document.createElement("div");
+    contact.className = "contact";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    setAvatar(avatar, name, profile.photoURL || "");
+
+    const info = document.createElement("div");
+    info.className = "contact-info";
+
+    const heading = document.createElement("h3");
+    heading.textContent = name;
+
+    const description = document.createElement("p");
+    description.textContent = "Accepted contact";
+    info.append(heading, description);
+
+    const openButton = document.createElement("button");
+    openButton.type = "button";
+    openButton.textContent = "Message";
+    openButton.addEventListener("click", () => openChat(uid));
+
+    contact.append(avatar, info, openButton);
+    contactList.appendChild(contact);
+  });
+
+  if (
+    loadedContactProfileIds.size >= expectedContactProfileIds.size &&
+    entries.length === 0 &&
+    expectedContactProfileIds.size > 0
+  ) {
+    showEmpty("Contact profiles could not be loaded.");
+    showStatus("Could not load contact profiles.");
+  } else if (loadedContactProfileIds.size >= expectedContactProfileIds.size) {
+    showStatus("Your accepted contacts are ready.");
+  }
+}
+
+function syncContactProfileListeners(contactIds) {
+  expectedContactProfileIds = new Set(contactIds);
+
+  contactProfileListeners.forEach((stop, uid) => {
+    if (!expectedContactProfileIds.has(uid)) {
+      stop();
+      contactProfileListeners.delete(uid);
+      contactProfiles.delete(uid);
+      loadedContactProfileIds.delete(uid);
+    }
+  });
+
+  expectedContactProfileIds.forEach(uid => {
+    if (contactProfileListeners.has(uid)) return;
+
+    const stop = onSnapshot(
+      doc(db, "users", uid),
+      snapshot => {
+        loadedContactProfileIds.add(uid);
+
+        if (snapshot.exists()) {
+          contactProfiles.set(uid, snapshot.data());
+          updateChatHeader(uid, snapshot.data());
+        } else {
+          contactProfiles.delete(uid);
+        }
+
+        renderContactList();
+        renderCurrentMessages();
+      },
+      error => {
+        console.error("Contact profile listener error:", error);
+        loadedContactProfileIds.add(uid);
+        renderContactList();
+      }
+    );
+
+    contactProfileListeners.set(uid, stop);
+  });
+}
+
+function updateChatHeader(uid, profile) {
+  if (uid !== otherUserId) return;
+
+  otherUserName =
+    typeof profile.fullName === "string" && profile.fullName.trim()
+      ? profile.fullName.trim()
+      : "SIMPLEXPING member";
+
+  chatName.textContent = otherUserName;
+  setAvatar(chatAvatar, otherUserName, profile.photoURL || "");
+  pageSubtitle.textContent = "Chatting with " + otherUserName;
 }
 
 /* Confirm that the other person is an accepted contact */
@@ -1087,6 +1218,17 @@ function renderMessage(messageDocument) {
   const data = messageDocument.data();
   const isSent = data.senderId === currentUser.uid;
   const isTextMessage = data.type === "text";
+  const senderProfile = isSent
+    ? currentUserProfile
+    : contactProfiles.get(data.senderId) || {};
+  const senderName = isSent
+    ? senderProfile.fullName || currentUser.displayName || "You"
+    : senderProfile.fullName || otherUserName;
+  const senderPhotoURL = senderProfile.photoURL ||
+    (isSent ? currentUser.photoURL : "") || "";
+
+  const row = document.createElement("div");
+  row.className = "message-row " + (isSent ? "sent" : "received");
 
   const bubble = document.createElement("div");
   bubble.className = "message " + (isSent ? "sent" : "received");
@@ -1320,7 +1462,11 @@ function renderMessage(messageDocument) {
     selectMessageForReply(messageDocument.id, data);
   });
 
-  messagesBox.appendChild(bubble);
+  row.append(
+    createMessageAvatar(senderName, senderPhotoURL),
+    bubble
+  );
+  messagesBox.appendChild(row);
 }
 
 /* Open a conversation with an accepted contact */
@@ -1344,25 +1490,24 @@ async function openChat(uid) {
       return;
     }
 
-    const profileSnapshot = await getDoc(doc(db, "users", uid));
+    let profile = contactProfiles.get(uid);
 
-    if (!profileSnapshot.exists()) {
-      showStatus("This contact's profile could not be found.");
-      return;
+    if (!profile) {
+      const profileSnapshot = await getDoc(doc(db, "users", uid));
+
+      if (!profileSnapshot.exists()) {
+        showStatus("This contact's profile could not be found.");
+        return;
+      }
+
+      profile = profileSnapshot.data();
+      contactProfiles.set(uid, profile);
     }
 
-    const profile = profileSnapshot.data();
-
-    otherUserName =
-      typeof profile.fullName === "string" &&
-      profile.fullName.trim()
-        ? profile.fullName.trim()
-        : "SIMPLEXPING member";
-
-    chatName.textContent = otherUserName;
-    setAvatar(chatAvatar, otherUserName, profile.photoURL || "");
+    updateChatHeader(uid, profile);
 
     conversationId = conversationIdFor(currentUser.uid, uid);
+    currentMessageDocuments = [];
 
     const members = [currentUser.uid, uid].sort();
 
@@ -1395,20 +1540,9 @@ async function openChat(uid) {
     stopMessagesListener = onSnapshot(
       messagesQuery,
       (snapshot) => {
-        messagesBox.replaceChildren();
-
-        if (snapshot.empty) {
-          showEmpty("No messages yet. Say hello!");
-          chatReady = true;
-          return;
-        }
-
-        snapshot.forEach((messageDocument) => {
-          renderMessage(messageDocument);
-        });
-
-        messagesBox.scrollTop = messagesBox.scrollHeight;
+        currentMessageDocuments = snapshot.docs;
         chatReady = true;
+        renderCurrentMessages();
       },
       (error) => {
         console.error("Message listener error:", error);
@@ -1733,6 +1867,7 @@ backToContactsButton.addEventListener("click", () => {
   conversationId = null;
   otherUserId = null;
   chatReady = false;
+  currentMessageDocuments = [];
 
   clearReply();
   closePhoto();
@@ -1759,10 +1894,26 @@ onAuthStateChanged(auth, async (user) => {
   stopChatListener();
   clearReply();
 
+  if (typeof stopOwnProfileListener === "function") {
+    stopOwnProfileListener();
+  }
+
+  contactProfileListeners.forEach(stop => stop());
+  contactProfileListeners.clear();
+  contactProfiles.clear();
+  expectedContactProfileIds.clear();
+  loadedContactProfileIds.clear();
+
   currentUser = user;
+  currentUserProfile = {
+    fullName: user?.displayName || "",
+    photoURL: user?.photoURL || ""
+  };
   chatReady = false;
   conversationId = null;
   otherUserId = null;
+  currentMessageDocuments = [];
+  stopOwnProfileListener = null;
 
   if (!user) {
     contactList.replaceChildren();
@@ -1776,6 +1927,19 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   try {
+    stopOwnProfileListener = onSnapshot(
+      doc(db, "users", user.uid),
+      snapshot => {
+        if (snapshot.exists()) {
+          currentUserProfile = snapshot.data();
+        }
+        renderCurrentMessages();
+      },
+      error => {
+        console.error("Current user profile listener error:", error);
+      }
+    );
+
     contactList.style.display = "flex";
     chatScreen.style.display = "none";
     messageForm.hidden = true;

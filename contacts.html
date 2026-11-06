@@ -170,9 +170,11 @@ header a {
 }
 
 .avatar {
+  position: relative;
   width: 46px;
   height: 46px;
   flex-shrink: 0;
+  overflow: hidden;
   border-radius: 50%;
   background: linear-gradient(135deg, #244B7D, #3978D5);
   display: flex;
@@ -181,6 +183,16 @@ header a {
   font-size: 18px;
   font-weight: bold;
   color: white;
+}
+
+.avatar img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .info {
@@ -442,6 +454,7 @@ let allUsers = [];
 let incomingRequests = [];
 let outgoingRequests = [];
 let acceptedContacts = [];
+let stopUsersListener = null;
 let busy = false;
 
 function showMessage(text, type = "info") {
@@ -464,6 +477,13 @@ function getUsername(user) {
 
 function getUserById(uid) {
   return allUsers.find(user => user.uid === uid);
+}
+
+function getInitials(name) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return parts.length > 1
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : (parts[0]?.[0] || "U").toUpperCase();
 }
 
 function emptyMessage(container, text) {
@@ -496,7 +516,17 @@ function createPerson(user, actions = []) {
 
   const avatar = document.createElement("div");
   avatar.className = "avatar";
-  avatar.textContent = name.charAt(0).toUpperCase();
+  avatar.textContent = getInitials(name);
+  avatar.setAttribute("aria-label", name + " profile picture");
+
+  if (typeof user.photoURL === "string" && user.photoURL.trim()) {
+    const image = document.createElement("img");
+    image.src = user.photoURL;
+    image.alt = "";
+    image.loading = "lazy";
+    image.addEventListener("error", () => image.remove(), { once: true });
+    avatar.appendChild(image);
+  }
 
   const info = document.createElement("div");
   info.className = "info";
@@ -907,6 +937,40 @@ function renderContacts() {
 
 // LOAD FIRESTORE DATA
 
+function renderAllLists() {
+  renderDiscover();
+  renderIncoming();
+  renderOutgoing();
+  renderContacts();
+}
+
+function startUsersListener() {
+  if (typeof stopUsersListener === "function") {
+    stopUsersListener();
+  }
+
+  stopUsersListener = onSnapshot(
+    query(collection(db, "users"), limit(100)),
+    snapshot => {
+      allUsers = snapshot.docs
+        .map(item => ({
+          uid: item.id,
+          ...item.data()
+        }))
+        .filter(user => user.uid !== currentUser.uid);
+
+      renderAllLists();
+    },
+    error => {
+      console.error("User profiles listener error:", error);
+      showMessage(
+        "Unable to keep profile pictures up to date. Check your connection and Firestore permissions.",
+        "error"
+      );
+    }
+  );
+}
+
 async function loadContactData() {
 
   if (!currentUser) return;
@@ -914,12 +978,6 @@ async function loadContactData() {
   try {
 
     const results = await Promise.all([
-
-      getDocs(query(
-        collection(db, "users"),
-        limit(100)
-      )),
-
       getDocs(query(
         collection(db, "contactRequests"),
         where("receiverId", "==", currentUser.uid)
@@ -934,35 +992,24 @@ async function loadContactData() {
         collection(db, "contacts"),
         where("participants", "array-contains", currentUser.uid)
       ))
-
     ]);
 
-    allUsers = results[0].docs
-      .map(item => ({
-        uid: item.id,
-        ...item.data()
-      }))
-      .filter(user => user.uid !== currentUser.uid);
-
-    incomingRequests = results[1].docs.map(item => ({
+    incomingRequests = results[0].docs.map(item => ({
       id: item.id,
       ...item.data()
     }));
 
-    outgoingRequests = results[2].docs.map(item => ({
+    outgoingRequests = results[1].docs.map(item => ({
       id: item.id,
       ...item.data()
     }));
 
-    acceptedContacts = results[3].docs.map(item => ({
+    acceptedContacts = results[2].docs.map(item => ({
       id: item.id,
       ...item.data()
     }));
 
-    renderDiscover();
-    renderIncoming();
-    renderOutgoing();
-    renderContacts();
+    renderAllLists();
 
   } catch (error) {
 
@@ -991,6 +1038,7 @@ onAuthStateChanged(auth, async user => {
 
   currentUser = user;
 
+  startUsersListener();
   await loadContactData();
 
 });

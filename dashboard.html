@@ -359,7 +359,7 @@ import {
 
 import {
   doc,
-  getDoc
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const loading = document.getElementById("loading");
@@ -368,10 +368,13 @@ const errorBox = document.getElementById("error");
 const logoutBtn = document.getElementById("logoutBtn");
 const profileLink = document.getElementById("profileLink");
 const userInitial = document.getElementById("userInitial");
+let stopProfileListener = null;
 
 function showInitial(initial) {
-  userInitial.textContent =
-    (initial || "U").trim().charAt(0).toUpperCase() || "U";
+  const parts = (initial || "U").trim().split(/\s+/).filter(Boolean);
+  userInitial.textContent = parts.length > 1
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : (parts[0]?.[0] || "U").toUpperCase();
 
   userInitial.style.display = "flex";
 
@@ -405,7 +408,12 @@ function showProfilePhoto(photoURL, initial) {
   profileLink.appendChild(image);
 }
 
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, (user) => {
+
+  if (typeof stopProfileListener === "function") {
+    stopProfileListener();
+    stopProfileListener = null;
+  }
 
   if (!user) {
     window.location.replace("login.html");
@@ -414,37 +422,40 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
 
-    let fullName = user.displayName || "User";
-    let photoURL = user.photoURL || "";
+    stopProfileListener = onSnapshot(
+      doc(db, "users", user.uid),
+      profileSnapshot => {
+        const profile = profileSnapshot.exists()
+          ? profileSnapshot.data()
+          : {};
 
-    const profileSnapshot = await getDoc(
-      doc(db, "users", user.uid)
+        const fullName =
+          profile.fullName ||
+          profile.username ||
+          user.displayName ||
+          "User";
+        const photoURL = profile.photoURL || user.photoURL || "";
+
+        document.getElementById("userName").textContent = fullName;
+        document.getElementById("accountName").textContent = fullName;
+        document.getElementById("accountEmail").textContent =
+          user.email || "Not available";
+        document.getElementById("accountId").textContent = user.uid;
+
+        showProfilePhoto(photoURL, fullName);
+
+        loading.style.display = "none";
+        dashboard.style.display = "block";
+      },
+      error => {
+        console.error("Dashboard profile listener error:", error);
+        loading.style.display = "none";
+        errorBox.style.display = "block";
+        errorBox.textContent =
+          "We could not load your account information. Please refresh the page. Error: " +
+          (error.code || error.message);
+      }
     );
-
-    if (profileSnapshot.exists()) {
-      const profile = profileSnapshot.data();
-
-      fullName =
-        profile.fullName ||
-        profile.username ||
-        fullName;
-
-      photoURL =
-        profile.photoURL ||
-        photoURL;
-    }
-
-    document.getElementById("userName").textContent = fullName;
-    document.getElementById("accountName").textContent = fullName;
-    document.getElementById("accountEmail").textContent =
-      user.email || "Not available";
-
-    document.getElementById("accountId").textContent = user.uid;
-
-    showProfilePhoto(photoURL, fullName);
-
-    loading.style.display = "none";
-    dashboard.style.display = "block";
 
   } catch (error) {
 
