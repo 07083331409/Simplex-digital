@@ -9,30 +9,31 @@
 <style>
 * {
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 body {
   margin: 0;
-  background: #091426;
-  color: #f1f5fb;
+  background: #081321;
+  color: #edf4fd;
   min-height: 100vh;
 }
 
 .container {
   width: 100%;
-  max-width: 850px;
+  max-width: 1120px;
   min-height: 100vh;
   margin: auto;
-  background: #101f35;
+  background: #0e1b2d;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 0 60px rgba(0, 0, 0, .22);
 }
 
 header {
-  padding: 18px;
-  background: #142640;
-  border-bottom: 1px solid #263b56;
+  padding: 18px 22px;
+  background: #111f33;
+  border-bottom: 1px solid #263a54;
 }
 
 .top {
@@ -42,60 +43,99 @@ header {
 }
 
 .back {
-  color: #a9c6ec;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  border: 1px solid #334b69;
+  border-radius: 50%;
+  color: #c4d9f4;
   text-decoration: none;
-  font-size: 27px;
+  font-size: 24px;
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.back:hover {
+  background: #1b3452;
+  border-color: #5279a8;
 }
 
 h1 {
-  font-size: 22px;
+  font-size: 20px;
+  font-weight: 650;
   margin: 0;
 }
 
 .subtitle {
-  color: #91a9c6;
-  font-size: 14px;
-  margin: 10px 0 0;
+  color: #91a8c3;
+  font-size: 13px;
+  margin: 4px 0 0 50px;
 }
 
 #status {
-  padding: 12px;
+  padding: 9px 16px;
   text-align: center;
   font-size: 13px;
   color: #a9c6ec;
+  background: #10233a;
+  border-bottom: 1px solid #263b56;
   overflow-wrap: anywhere;
 }
 
 #contactList {
-  padding: 14px;
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .contact {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px;
-  background: #172b45;
-  border: 1px solid #29415f;
-  border-radius: 12px;
+  gap: 14px;
+  padding: 15px 16px;
+  background: #13243a;
+  border: 1px solid #263e5a;
+  border-radius: 14px;
+  transition: border-color .18s ease, background .18s ease;
+}
+
+.contact:hover {
+  background: #172b44;
+  border-color: #3d6390;
 }
 
 .avatar {
   position: relative;
   width: 45px;
   height: 45px;
+  flex-shrink: 0;
   border-radius: 50%;
-  background: #28518a;
+  background: #234a79;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   font-size: 18px;
-  flex-shrink: 0;
+  color: white;
   overflow: hidden;
+  border: 2px solid rgba(142, 183, 231, .36);
+  cursor: pointer;
+  transition: border-color .18s ease, transform .18s ease;
+}
+
+.avatar:hover {
+  border-color: #78a9e3;
+  transform: scale(1.04);
+}
+
+.avatar:focus-visible,
+.message-avatar:focus-visible {
+  outline: 3px solid #78a9e3;
+  outline-offset: 3px;
 }
 
 .avatar img {
@@ -119,8 +159,8 @@ h1 {
 
 .contact-info h3,
 .chat-header h3 {
-  margin: 0;
   font-size: 15px;
+  margin: 0;
   overflow-wrap: anywhere;
 }
 
@@ -133,7 +173,7 @@ h1 {
 
 button {
   border: 0;
-  border-radius: 22px;
+  border-radius: 9px;
   background: #3978c7;
   color: white;
   font-weight: bold;
@@ -148,8 +188,8 @@ button:disabled {
 
 .empty {
   text-align: center;
-  color: #91a9c6;
-  padding: 25px 15px;
+  color: #96abc4;
+  padding: 34px 18px;
   line-height: 1.7;
 }
 
@@ -167,39 +207,57 @@ button:disabled {
 }
 
 .chat-header {
-  padding: 13px 16px;
-  background: #142640;
+  min-height: 74px;
+  padding: 13px 20px;
+  background: #111f33;
   border-bottom: 1px solid #263b56;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .chat-header .avatar {
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
+  font-size: 16px;
+}
+
+.chat-header > div:last-child {
+  min-width: 0;
+}
+
+.chat-header h3 {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.chat-header p {
+  color: #91a8c3;
 }
 
 #messages {
   flex: 1;
   min-height: 250px;
-  padding: 15px;
+  padding: 24px clamp(14px, 4vw, 40px);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(35, 67, 104, .16), transparent 58%);
+  scrollbar-color: #344f70 #0e1b2d;
 }
 
 .message {
-  max-width: min(88%, calc(100% - 38px));
-  padding: 12px 15px;
-  border-radius: 15px;
+  max-width: min(78%, calc(100% - 40px));
+  padding: 12px 16px;
+  border-radius: 17px;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .12);
 }
 
 .message-row {
@@ -211,7 +269,7 @@ button:disabled {
 
 .message-row.sent {
   flex-direction: row-reverse;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .message-row.received {
@@ -248,21 +306,23 @@ button:disabled {
   filter: brightness(1.15);
 }
 
-.sent {
-  background: #285b9b;
-  border-bottom-right-radius: 4px;
+.message.sent {
+  background: #24558e;
+  border: 1px solid #356ba8;
+  border-bottom-right-radius: 5px;
 }
 
-.received {
-  background: #20344f;
-  border-bottom-left-radius: 4px;
+.message.received {
+  background: #1a2b41;
+  border: 1px solid #2b405b;
+  border-bottom-left-radius: 5px;
 }
 
 .message-time {
   display: block;
   font-size: 10px;
-  color: #c1d0e4;
-  margin-top: 7px;
+  color: #c0d0e4;
+  margin-top: 8px;
   text-align: right;
 }
 
@@ -274,16 +334,16 @@ button:disabled {
 }
 
 .message-action {
-  padding: 3px 6px;
-  border-radius: 4px;
-  background: transparent;
-  color: #c1d0e4;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(8, 19, 33, .24);
+  color: #d3e2f5;
   font-size: 11px;
   font-weight: normal;
 }
 
 .message-action:hover {
-  background: rgba(255, 255, 255, .1);
+  background: rgba(8, 19, 33, .48);
 }
 
 .message-edited {
@@ -304,9 +364,9 @@ button:disabled {
   width: 100%;
   min-height: 76px;
   padding: 8px;
-  border: 1px solid #7899bd;
-  border-radius: 6px;
-  background: #0b1a2e;
+  border: 1px solid #5279a8;
+  border-radius: 9px;
+  background: #0b192a;
   color: white;
   font: inherit;
   resize: vertical;
@@ -387,10 +447,10 @@ button:disabled {
 #replyPreview {
   display: none;
   align-items: center;
-  gap: 10px;
-  padding: 10px 13px;
-  background: #10213a;
-  border-top: 1px solid #304965;
+  gap: 12px;
+  padding: 11px 18px;
+  background: #12243a;
+  border-top: 1px solid #2c4360;
 }
 
 #replyPreviewContent {
@@ -418,15 +478,18 @@ button:disabled {
 #cancelReplyButton {
   background: transparent;
   color: #d8e5f5;
+  width: 36px;
+  height: 36px;
   font-size: 20px;
-  padding: 5px 10px;
+  padding: 0;
+  border-radius: 50%;
 }
 
 #emojiPicker {
   display: none;
-  padding: 10px;
-  background: #10213a;
-  border-top: 1px solid #304965;
+  padding: 12px 16px;
+  background: #12243a;
+  border-top: 1px solid #2c4360;
   grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 5px;
   max-height: 180px;
@@ -435,7 +498,7 @@ button:disabled {
 
 .emoji-choice {
   padding: 7px 0;
-  background: #20344f;
+  background: #1b304a;
   border-radius: 9px;
   font-size: 23px;
   line-height: 1.2;
@@ -443,10 +506,9 @@ button:disabled {
 
 #messageForm {
   display: flex;
-  gap: 8px;
-  padding: 12px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-  background: #142640;
+  gap: 10px;
+  padding: 13px 18px max(14px, env(safe-area-inset-bottom));
+  background: #111f33;
   border-top: 1px solid #263b56;
   align-items: center;
 }
@@ -454,18 +516,23 @@ button:disabled {
 #messageInput {
   flex: 1;
   min-width: 0;
-  height: 46px;
-  padding: 0 15px;
-  border: 1px solid #304965;
-  border-radius: 25px;
+  height: 48px;
+  padding: 0 17px;
+  border: 1px solid #354d6b;
+  border-radius: 14px;
   outline: none;
-  background: #0b1a2e;
+  background: #0a1727;
   color: white;
   font-size: 16px;
 }
 
 #messageInput::placeholder {
-  color: #91a9c6;
+  color: #839ab5;
+}
+
+#messageInput:focus {
+  border-color: #5b8dcc;
+  box-shadow: 0 0 0 3px rgba(77, 132, 194, .16);
 }
 
 #emojiButton {
@@ -473,7 +540,7 @@ button:disabled {
   width: 44px;
   height: 44px;
   padding: 0;
-  background: #203d60;
+  background: #1b304a;
   border: 1px solid #355579;
   font-size: 23px;
 }
@@ -481,25 +548,32 @@ button:disabled {
 #attachmentButtons {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  padding: 10px 12px;
-  background: #142640;
+  gap: 9px;
+  padding: 12px 18px;
+  background: #111f33;
   align-items: center;
+  border-top: 1px solid #223750;
 }
 
 .attach-button {
   padding: 9px 13px;
   font-size: 13px;
-  background: #203d60;
-  border: 1px solid #355579;
+  background: #1a304a;
+  border: 1px solid #35516f;
   white-space: nowrap;
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.attach-button:hover {
+  background: #244364;
+  border-color: #5279a8;
 }
 
 #mediaHelp {
   color: #91a9c6;
   font-size: 11px;
   padding: 0 13px 10px;
-  background: #142640;
+  background: #111f33;
   line-height: 1.5;
 }
 
@@ -547,24 +621,140 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
+#profileDialog {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 10, 19, .78);
+  backdrop-filter: blur(5px);
+}
+
+#profileDialog[hidden] {
+  display: none !important;
+}
+
+.profile-dialog-panel {
+  position: relative;
+  width: min(100%, 390px);
+  padding: 34px 28px 28px;
+  border: 1px solid #344d6d;
+  border-radius: 18px;
+  background: #122239;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .45);
+  text-align: center;
+}
+
+#closeProfileDialog {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #334b69;
+  border-radius: 50%;
+  background: #1a304a;
+  color: #dce8f7;
+  font-size: 20px;
+}
+
+.profile-dialog-avatar {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+  overflow: hidden;
+  border: 3px solid #477bb5;
+  border-radius: 50%;
+  background: #234a79;
+  color: white;
+  font-size: 29px;
+  font-weight: 700;
+}
+
+.profile-dialog-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+#profileDialogName {
+  margin: 0;
+  font-size: 21px;
+  overflow-wrap: anywhere;
+}
+
+#profileDialogUsername {
+  margin-top: 7px;
+  color: #9ab6d8;
+  font-size: 13px;
+}
+
+#profileDialogEmail {
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid #2a405d;
+  color: #c4d4e8;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
 @media (min-width: 600px) {
   .container {
-    min-height: 90vh;
-    max-height: 900px;
-    margin-top: 5vh;
-    border-radius: 16px;
+    min-height: 92vh;
+    max-height: 960px;
+    margin-top: 4vh;
+    border: 1px solid #213650;
+    border-radius: 18px;
     overflow: hidden;
   }
 }
 
 @media (max-width: 380px) {
+  header {
+    padding: 14px;
+  }
+
+  .subtitle {
+    margin-left: 50px;
+  }
+
+  #contactList {
+    padding: 14px;
+  }
+
+  #messages {
+    padding: 16px 10px;
+    gap: 12px;
+  }
+
+  .message {
+    max-width: calc(100% - 36px);
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .message-avatar {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+  }
+
   #messageForm {
-    gap: 5px;
-    padding: 8px;
+    gap: 6px;
+    padding: 9px 8px max(10px, env(safe-area-inset-bottom));
   }
 
   #sendButton {
-    padding: 10px 12px;
+    padding: 10px 13px;
   }
 
   #emojiButton {
@@ -573,11 +763,20 @@ button:disabled {
   }
 
   .attach-button {
-    padding: 9px 10px;
+    flex: 1 1 auto;
+    padding: 9px 8px;
+    font-size: 12px;
   }
 
   #emojiPicker {
     grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
   }
 }
 </style>
@@ -718,6 +917,21 @@ button:disabled {
   <p id="enlargedPhotoName"></p>
 </div>
 
+<div id="profileDialog" hidden>
+  <section class="profile-dialog-panel" role="dialog" aria-modal="true"
+    aria-labelledby="profileDialogName">
+    <button type="button" id="closeProfileDialog"
+      aria-label="Close profile">×</button>
+    <div class="profile-dialog-avatar" id="profileDialogAvatar">
+      <span id="profileDialogInitials">U</span>
+      <img id="profileDialogImage" alt="" hidden>
+    </div>
+    <h2 id="profileDialogName"></h2>
+    <p id="profileDialogUsername" hidden></p>
+    <p id="profileDialogEmail"></p>
+  </section>
+</div>
+
 <script type="module">
 
 import { auth, db } from "./firebase.js";
@@ -786,6 +1000,16 @@ const closePhotoViewerButton =
 const enlargedPhoto = document.getElementById("enlargedPhoto");
 const enlargedPhotoName =
   document.getElementById("enlargedPhotoName");
+const profileDialog = document.getElementById("profileDialog");
+const profileDialogInitials =
+  document.getElementById("profileDialogInitials");
+const profileDialogImage = document.getElementById("profileDialogImage");
+const profileDialogName = document.getElementById("profileDialogName");
+const profileDialogUsername =
+  document.getElementById("profileDialogUsername");
+const profileDialogEmail = document.getElementById("profileDialogEmail");
+const closeProfileDialogButton =
+  document.getElementById("closeProfileDialog");
 
 /* Reply controls */
 const replyPreview = document.getElementById("replyPreview");
@@ -817,6 +1041,7 @@ let expectedContactProfileIds = new Set();
 let loadedContactProfileIds = new Set();
 let currentUserProfile = {};
 let currentMessageDocuments = [];
+let profileDialogOpener = null;
 let sending = false;
 let uploadingMedia = false;
 let chatReady = false;
@@ -860,8 +1085,10 @@ function closePhoto() {
 }
 
 /* Display a user's avatar or initials */
-function setAvatar(element, name, photoURL = "") {
+function setAvatar(element, name, photoURL = "", profile = null, userId = "") {
   element.replaceChildren();
+  element.onclick = null;
+  element.onkeydown = null;
 
   const safeName =
     typeof name === "string" && name.trim()
@@ -869,6 +1096,21 @@ function setAvatar(element, name, photoURL = "") {
       : "User";
 
   element.textContent = getInitials(safeName);
+
+  if (userId && profile) {
+    element.setAttribute("role", "button");
+    element.setAttribute("tabindex", "0");
+    element.setAttribute("aria-label", "View " + safeName + "'s profile");
+    element.onclick = (event) => {
+      openProfileView(userId, profile, event.currentTarget);
+    };
+    element.onkeydown = (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openProfileView(userId, profile, event.currentTarget);
+      }
+    };
+  }
 
   if (typeof photoURL === "string" && photoURL.trim()) {
     const image = document.createElement("img");
@@ -885,17 +1127,10 @@ function setAvatar(element, name, photoURL = "") {
     element.appendChild(image);
     element.classList.add("has-photo");
 
-    element.onclick = () => {
-      if (image.isConnected && image.naturalWidth > 0) {
-        openPhoto(photoURL, safeName);
-      }
-    };
-
     return;
   }
 
   element.classList.remove("has-photo");
-  element.onclick = null;
 }
 
 function getInitials(name) {
@@ -905,11 +1140,22 @@ function getInitials(name) {
     : (parts[0]?.[0] || "U").toUpperCase();
 }
 
-function createMessageAvatar(name, photoURL = "") {
+function createMessageAvatar(name, photoURL = "", userId = "", profile = null) {
   const avatar = document.createElement("div");
   avatar.className = "message-avatar";
   avatar.textContent = getInitials(name);
-  avatar.setAttribute("aria-label", name + " profile picture");
+  avatar.setAttribute("role", "button");
+  avatar.setAttribute("tabindex", "0");
+  avatar.setAttribute("aria-label", "View " + name + "'s profile");
+  avatar.addEventListener("click", (event) => {
+    openProfileView(userId, profile || {}, event.currentTarget);
+  });
+  avatar.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openProfileView(userId, profile || {}, event.currentTarget);
+    }
+  });
 
   if (typeof photoURL === "string" && photoURL.trim()) {
     const image = document.createElement("img");
@@ -921,6 +1167,52 @@ function createMessageAvatar(name, photoURL = "") {
   }
 
   return avatar;
+}
+
+function openProfileView(userId, profile, opener) {
+  if (!currentUser || !userId) return;
+
+  const isCurrentUser = userId === currentUser.uid;
+  const userProfile = isCurrentUser ? currentUserProfile : profile;
+  const name = userProfile.fullName || userProfile.displayName ||
+    (isCurrentUser ? currentUser.displayName : "SIMPLEXPING member") || "User";
+  const photoURL = userProfile.photoURL ||
+    (isCurrentUser ? currentUser.photoURL : "") || "";
+  const email = userProfile.email ||
+    (isCurrentUser ? currentUser.email : "") || "Email unavailable";
+  const username = typeof userProfile.username === "string"
+    ? userProfile.username.trim()
+    : "";
+
+  profileDialogOpener = opener || null;
+  profileDialogName.textContent = name;
+  profileDialogInitials.textContent = getInitials(name);
+  profileDialogUsername.textContent = username ? "@" + username : "";
+  profileDialogUsername.hidden = !username;
+  profileDialogEmail.textContent = email;
+  profileDialogImage.removeAttribute("src");
+  profileDialogImage.hidden = true;
+  profileDialogImage.onerror = null;
+
+  if (photoURL) {
+    profileDialogImage.onerror = () => {
+      profileDialogImage.removeAttribute("src");
+      profileDialogImage.hidden = true;
+    };
+    profileDialogImage.src = photoURL;
+    profileDialogImage.hidden = false;
+  }
+
+  profileDialog.hidden = false;
+  closeProfileDialogButton.focus();
+}
+
+function closeProfileView() {
+  profileDialog.hidden = true;
+  if (profileDialogOpener?.isConnected) {
+    profileDialogOpener.focus();
+  }
+  profileDialogOpener = null;
 }
 
 function renderCurrentMessages() {
@@ -1023,7 +1315,7 @@ function renderContactList() {
 
     const avatar = document.createElement("div");
     avatar.className = "avatar";
-    setAvatar(avatar, name, profile.photoURL || "");
+    setAvatar(avatar, name, profile.photoURL || "", profile, uid);
 
     const info = document.createElement("div");
     info.className = "contact-info";
@@ -1106,7 +1398,7 @@ function updateChatHeader(uid, profile) {
       : "SIMPLEXPING member";
 
   chatName.textContent = otherUserName;
-  setAvatar(chatAvatar, otherUserName, profile.photoURL || "");
+  setAvatar(chatAvatar, otherUserName, profile.photoURL || "", profile, uid);
   pageSubtitle.textContent = "Chatting with " + otherUserName;
 }
 
@@ -1463,7 +1755,7 @@ function renderMessage(messageDocument) {
   });
 
   row.append(
-    createMessageAvatar(senderName, senderPhotoURL),
+    createMessageAvatar(senderName, senderPhotoURL, data.senderId, senderProfile),
     bubble
   );
   messagesBox.appendChild(row);
@@ -1847,6 +2139,7 @@ videoInput.addEventListener("change", async () => {
 
 /* Photo viewer controls */
 closePhotoViewerButton.addEventListener("click", closePhoto);
+closeProfileDialogButton.addEventListener("click", closeProfileView);
 
 photoViewer.addEventListener("click", (event) => {
   if (event.target === photoViewer) {
@@ -1854,9 +2147,19 @@ photoViewer.addEventListener("click", (event) => {
   }
 });
 
+profileDialog.addEventListener("click", (event) => {
+  if (event.target === profileDialog) {
+    closeProfileView();
+  }
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !photoViewer.hidden) {
     closePhoto();
+  }
+
+  if (event.key === "Escape" && !profileDialog.hidden) {
+    closeProfileView();
   }
 });
 
