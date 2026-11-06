@@ -221,6 +221,68 @@ button:disabled {
   text-align: right;
 }
 
+.message-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.message-action {
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: transparent;
+  color: #c1d0e4;
+  font-size: 11px;
+  font-weight: normal;
+}
+
+.message-action:hover {
+  background: rgba(255, 255, 255, .1);
+}
+
+.message-edited {
+  display: block;
+  margin-top: 5px;
+  color: #c1d0e4;
+  font-size: 10px;
+  text-align: right;
+}
+
+.message-edit-form {
+  display: grid;
+  gap: 7px;
+  min-width: min(250px, 70vw);
+}
+
+.message-edit-input {
+  width: 100%;
+  min-height: 76px;
+  padding: 8px;
+  border: 1px solid #7899bd;
+  border-radius: 6px;
+  background: #0b1a2e;
+  color: white;
+  font: inherit;
+  resize: vertical;
+}
+
+.message-edit-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.message-edit-controls button {
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.message-edit-cancel {
+  background: #304965;
+}
+
 .message-image,
 .message-video {
   display: block;
@@ -626,6 +688,8 @@ import {
   setDoc,
   collection,
   addDoc,
+  updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -1022,6 +1086,7 @@ function createReplyQuote(replyTo) {
 function renderMessage(messageDocument) {
   const data = messageDocument.data();
   const isSent = data.senderId === currentUser.uid;
+  const isTextMessage = data.type === "text";
 
   const bubble = document.createElement("div");
   bubble.className = "message " + (isSent ? "sent" : "received");
@@ -1097,9 +1162,140 @@ function renderMessage(messageDocument) {
     }
   } else {
     const text = document.createElement("div");
+    text.className = "message-body";
     text.textContent =
       typeof data.text === "string" ? data.text : "";
     bubble.appendChild(text);
+  }
+
+  if (data.edited === true && isTextMessage) {
+    const edited = document.createElement("span");
+    edited.className = "message-edited";
+    edited.textContent = "Edited";
+    bubble.appendChild(edited);
+  }
+
+  if (isSent) {
+    const actions = document.createElement("div");
+    actions.className = "message-actions";
+
+    if (isTextMessage) {
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "message-action";
+      editButton.textContent = "Edit";
+      editButton.setAttribute("aria-label", "Edit sent message");
+      editButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (data.senderId !== currentUser.uid) return;
+
+        const body = bubble.querySelector(".message-body");
+        if (!body) return;
+
+        const editForm = document.createElement("form");
+        editForm.className = "message-edit-form";
+
+        const editInput = document.createElement("textarea");
+        editInput.className = "message-edit-input";
+        editInput.maxLength = 2000;
+        editInput.setAttribute("aria-label", "Edit message text");
+        editInput.value = typeof data.text === "string" ? data.text : "";
+
+        const controls = document.createElement("div");
+        controls.className = "message-edit-controls";
+
+        const cancelButton = document.createElement("button");
+        cancelButton.type = "button";
+        cancelButton.className = "message-edit-cancel";
+        cancelButton.textContent = "Cancel";
+
+        const saveButton = document.createElement("button");
+        saveButton.type = "submit";
+        saveButton.textContent = "Save";
+
+        cancelButton.addEventListener("click", (cancelEvent) => {
+          cancelEvent.preventDefault();
+          cancelEvent.stopPropagation();
+          editForm.replaceWith(body);
+        });
+
+        editForm.addEventListener("click", (formEvent) => {
+          formEvent.stopPropagation();
+        });
+
+        editForm.addEventListener("submit", async (submitEvent) => {
+          submitEvent.preventDefault();
+          submitEvent.stopPropagation();
+
+          const updatedText = editInput.value.trim();
+
+          if (!updatedText || updatedText.length > 2000) {
+            showStatus("Edited messages must contain 1 to 2,000 characters.");
+            return;
+          }
+
+          saveButton.disabled = true;
+          cancelButton.disabled = true;
+
+          try {
+            await updateDoc(
+              doc(db, "conversations", conversationId, "messages", messageDocument.id),
+              {
+                text: updatedText,
+                edited: true,
+                editedAt: serverTimestamp()
+              }
+            );
+            statusText.hidden = true;
+          } catch (error) {
+            console.error("Could not edit message:", error);
+            showStatus("Message not edited. Check your connection and Firestore rules.");
+            saveButton.disabled = false;
+            cancelButton.disabled = false;
+          }
+        });
+
+        controls.append(cancelButton, saveButton);
+        editForm.append(editInput, controls);
+        body.replaceWith(editForm);
+        editInput.focus();
+        editInput.setSelectionRange(editInput.value.length, editInput.value.length);
+      });
+
+      actions.appendChild(editButton);
+    }
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "message-action";
+    deleteButton.textContent = "Delete";
+    deleteButton.setAttribute("aria-label", "Delete sent message");
+    deleteButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (data.senderId !== currentUser.uid) return;
+      if (!window.confirm("Delete this message for everyone in the conversation?")) {
+        return;
+      }
+
+      deleteButton.disabled = true;
+
+      try {
+        await deleteDoc(
+          doc(db, "conversations", conversationId, "messages", messageDocument.id)
+        );
+        statusText.hidden = true;
+      } catch (error) {
+        console.error("Could not delete message:", error);
+        showStatus("Message not deleted. Check your connection and Firestore rules.");
+        deleteButton.disabled = false;
+      }
+    });
+    actions.appendChild(deleteButton);
+    bubble.appendChild(actions);
   }
 
   if (data.createdAt && typeof data.createdAt.toDate === "function") {
