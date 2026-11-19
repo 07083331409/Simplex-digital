@@ -2043,14 +2043,13 @@ cancelReplyButton.addEventListener("click", () => {
   messageInput.focus();
 });
 
-/* Upload media to Cloudinary */
+/* Upload chat media to Cloudinary */
 async function uploadToCloudinary(file, type) {
   if (!file) {
     throw new Error("No file was selected.");
   }
 
   const resourceType = type === "image" ? "image" : "video";
-
   const uploadURL =
     `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
 
@@ -2065,15 +2064,29 @@ async function uploadToCloudinary(file, type) {
 
   const result = await response.json();
 
-  if (!response.ok || !result.secure_url) {
+  if (
+    !response.ok ||
+    !result.secure_url ||
+    !result.asset_id ||
+    !result.public_id ||
+    !result.resource_type
+  ) {
     console.error("Cloudinary upload failed:", result);
     throw new Error(
-      result.error?.message || "The media upload failed."
+      result.error?.message ||
+      "The media upload failed or Cloudinary returned incomplete asset details."
     );
   }
 
-  return result.secure_url;
+  return {
+    secureUrl: result.secure_url,
+    assetId: result.asset_id,
+    publicId: result.public_id,
+    resourceType: result.resource_type,
+    assetFolder: result.asset_folder || ""
+  };
 }
+
 
 /* Send an image, audio file, or video */
 async function sendMedia(file, type) {
@@ -2137,13 +2150,17 @@ async function sendMedia(file, type) {
   showStatus(`Uploading ${type}... Please wait.`);
 
   try {
-    const mediaUrl = await uploadToCloudinary(file, type);
+    const upload = await uploadToCloudinary(file, type);
     const caption = messageInput.value.trim();
 
     const messageData = {
       text: caption,
       type,
-      mediaUrl,
+      mediaUrl: upload.secureUrl,
+      cloudinaryAssetId: upload.assetId,
+      cloudinaryPublicId: upload.publicId,
+      cloudinaryResourceType: upload.resourceType,
+      cloudinaryAssetFolder: upload.assetFolder,
       fileName: file.name,
       fileSize: file.size,
       senderId: currentUser.uid,
@@ -2171,12 +2188,14 @@ async function sendMedia(file, type) {
     emojiButton.setAttribute("aria-expanded", "false");
     statusText.hidden = true;
     return true;
+
   } catch (error) {
     console.error("Could not send media:", error);
     showStatus(
       "Media not sent. Check your internet connection, Cloudinary preset, and Firestore rules."
     );
     return false;
+
   } finally {
     uploadingMedia = false;
     photoButton.disabled = false;
@@ -2185,6 +2204,7 @@ async function sendMedia(file, type) {
     sendButton.disabled = false;
   }
 }
+
 
 /* Open the appropriate file picker */
 photoButton.addEventListener("click", () => {
