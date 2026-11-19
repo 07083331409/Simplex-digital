@@ -1,0 +1,310 @@
+// REVIEW ONLY: proposed Firestore rules. Not deployed.
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function validUserProfile(userId) {
+      return request.resource.data.uid == userId
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() >= 2
+        && request.resource.data.fullName.size() <= 80
+        && request.resource.data.email == request.auth.token.email;
+    }
+
+    function isParticipant(conversationId) {
+      return signedIn()
+        && request.auth.uid in
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+
+    function isContactRequestParticipant() {
+      return signedIn()
+        && (
+          request.auth.uid == resource.data.senderId
+          || request.auth.uid == resource.data.receiverId
+        );
+    }
+
+    function validContactRequest() {
+      return request.resource.data.senderId == request.auth.uid
+        && request.resource.data.receiverId is string
+        && request.resource.data.receiverId != request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasOnly([
+          'senderId',
+          'receiverId',
+          'status',
+          'createdAt'
+        ]);
+    }
+
+    function acceptedRequestExists(requestId) {
+      return getAfter(
+        /databases/$(database)/documents/contactRequests/$(requestId)
+      ).data.status == 'accepted';
+    }
+
+    // USER PROFILES
+    match /users/{userId} {
+      allow read: if signedIn();
+
+      allow create: if isOwner(userId)
+        && validUserProfile(userId)
+        && request.resource.data.keys().hasOnly([
+          'uid',
+          'fullName',
+          'email',
+          'photoURL',
+          'status',
+          'createdAt'
+        ]);
+
+      allow update: if isOwner(userId)
+        && validUserProfile(userId)
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly([
+            'fullName',
+            'username',
+            'photoURL',
+            'status',
+            'updatedAt'
+          ]);
+
+      allow delete: if false;
+    }
+
+    // CONTACT REQUESTS
+    match /contactRequests/{requestId} {
+      allow create: if signedIn()
+        && validContactRequest()
+        && exists(
+          /databases/$(database)/documents/users/$(request.resource.data.receiverId)
+        );
+
+      allow read: if isContactRequestParticipant();
+
+      allow update: if signedIn()
+        && request.auth.uid == resource.data.receiverId
+        && resource.data.status == 'pending'
+        && request.resource.data.senderId == resource.data.senderId
+        && request.resource.data.receiverId == resource.data.receiverId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.status in ['accepted', 'rejected']
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status'])
+        && (
+          request.resource.data.status == 'rejected'
+          || existsAfter(
+            /databases/$(database)/documents/contacts/$(requestId)
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    // ACCEPTED CONTACT RELATIONSHIPS
+    match /contacts/{requestId} {
+      allow create: if signedIn()
+        && acceptedRequestExists(requestId)
+        && request.auth.uid ==
+          getAfter(
+            /databases/$(database)/documents/contactRequests/$(requestId)
+          ).data.receiverId
+        && request.resource.data.requestId == requestId
+        && request.resource.data.participants is list
+        && request.resource.data.participants.size() == 2
+        && request.resource.data.participants ==
+          [
+            getAfter(
+              /databases/$(database)/documents/contactRequests/$(requestId)
+            ).data.senderId,
+            getAfter(
+              /databases/$(database)/documents/contactRequests/$(requestId)
+            ).data.receiverId
+          ]
+        && request.resource.data.keys().hasOnly([
+          'requestId',
+          'participants',
+          'createdAt'
+        ]);
+
+      allow read: if signedIn()
+        && request.auth.uid in resource.data.participants;
+
+      allow update, delete: if false;
+    }
+
+    // PRIVATE CONVERSATIONS
+    match /conversations/{conversationId} {
+      allow create: if signedIn()
+        && request.resource.data.participants is list
+        && request.resource.data.participants.size() == 2
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.participants[0]
+          != request.resource.data.participants[1]
+        && conversationId ==
+          request.resource.data.participants[0] + "_"
+          + request.resource.data.participants[1]
+        && request.resource.data.keys().hasOnly([
+          'participants',
+          'updatedAt'
+        ]);
+
+      allow read: if isParticipant(conversationId);
+
+      allow update: if isParticipant(conversationId)
+        && request.resource.data.participants == resource.data.participants
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['updatedAt']);
+
+      allow delete: if false;
+
+      // MESSAGES: TEXT, IMAGES, AUDIO, VIDEO AND REPLIES
+      match /messages/{messageId} {
+        allow read: if isParticipant(conversationId);
+
+        allow create: if isParticipant(conversationId)
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.type in [
+            'text',
+            'image',
+            'audio',
+            'video'
+          ]
+          && request.resource.data.keys().hasOnly([
+            'senderId',
+            'text',
+            'type',
+            'createdAt',
+            'mediaUrl',
+            'fileName',
+            'fileSize',
+            'replyTo',
+            'cloudinaryPublicId',
+            'cloudinaryAssetId',
+            'cloudinaryResourceType',
+            'isChatMedia'
+          ])
+          && (
+            !('replyTo' in request.resource.data)
+            || (
+              request.resource.data.replyTo is map
+              && request.resource.data.replyTo.keys().hasOnly([
+                'messageId',
+                'senderId',
+                'senderName',
+                'text',
+                'type'
+              ])
+              && request.resource.data.replyTo.messageId is string
+              && request.resource.data.replyTo.senderId is string
+              && request.resource.data.replyTo.senderName is string
+              && request.resource.data.replyTo.text is string
+              && request.resource.data.replyTo.type in [
+                'text',
+                'image',
+                'audio',
+                'video'
+              ]
+            )
+          )
+          && (
+            (
+              request.resource.data.type == 'text'
+              && request.resource.data.text.size() > 0
+              && !('mediaUrl' in request.resource.data)
+              && !('fileName' in request.resource.data)
+              && !('fileSize' in request.resource.data)
+              && !('isChatMedia' in request.resource.data)
+              && !('cloudinaryPublicId' in request.resource.data)
+              && !('cloudinaryAssetId' in request.resource.data)
+              && !('cloudinaryResourceType' in request.resource.data)
+            )
+            ||
+            (
+              request.resource.data.type in [
+                'image',
+                'audio',
+                'video'
+              ]
+              && request.resource.data.mediaUrl is string
+              && request.resource.data.mediaUrl.size() > 0
+              && request.resource.data.mediaUrl.size() <= 2048
+              && request.resource.data.fileName is string
+              && request.resource.data.fileName.size() > 0
+              && request.resource.data.fileName.size() <= 255
+              && request.resource.data.fileSize is int
+              && request.resource.data.fileSize > 0
+              && request.resource.data.isChatMedia == true
+              && request.resource.data.cloudinaryPublicId is string
+              && request.resource.data.cloudinaryPublicId.size() > 0
+              && request.resource.data.cloudinaryPublicId.size() <= 255
+              && request.resource.data.cloudinaryAssetId is string
+              && request.resource.data.cloudinaryAssetId.size() > 0
+              && request.resource.data.cloudinaryAssetId.size() <= 128
+              && request.resource.data.cloudinaryResourceType in [
+                'image',
+                'video'
+              ]
+              && (
+                (
+                  request.resource.data.type == 'image'
+                  && request.resource.data.fileSize <= 5242880
+                  && request.resource.data.cloudinaryResourceType == 'image'
+                )
+                ||
+                (
+                  request.resource.data.type == 'audio'
+                  && request.resource.data.fileSize <= 10485760
+                  && request.resource.data.cloudinaryResourceType == 'video'
+                )
+                ||
+                (
+                  request.resource.data.type == 'video'
+                  && request.resource.data.fileSize <= 20971520
+                  && request.resource.data.cloudinaryResourceType == 'video'
+                )
+              )
+            )
+          );
+
+        // EDIT: ONLY THE ORIGINAL SENDER CAN EDIT THEIR TEXT MESSAGE
+        // This allowlist prevents clients from changing media IDs or expiration state.
+        allow update: if isParticipant(conversationId)
+          && resource.data.senderId == request.auth.uid
+          && resource.data.type == 'text'
+          && request.resource.data.senderId == resource.data.senderId
+          && request.resource.data.type == resource.data.type
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly([
+              'text',
+              'edited',
+              'editedAt'
+            ])
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.edited == true
+          && request.resource.data.editedAt == request.time;
+
+        // DELETE: ONLY THE ORIGINAL SENDER CAN DELETE THEIR MESSAGE
+        allow delete: if isParticipant(conversationId)
+          && resource.data.senderId == request.auth.uid;
+      }
+    }
+  }
+}

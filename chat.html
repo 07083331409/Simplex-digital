@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -577,6 +578,59 @@ button:disabled {
   line-height: 1.5;
 }
 
+#audioRecorder {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 13px 16px;
+  background: #101f33;
+  border-top: 1px solid #29415e;
+}
+
+#audioRecorderInfo,
+#audioRecorderActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#audioRecorderStatus {
+  color: #d7e5f7;
+  font-size: 13px;
+}
+
+#audioRecorderTimer {
+  color: #8db9f0;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+#audioPreview {
+  width: 100%;
+  max-width: 440px;
+}
+
+.audio-recorder-button {
+  padding: 9px 13px;
+  background: #1a304a;
+  border: 1px solid #456486;
+  color: #eef5ff;
+  font-size: 13px;
+}
+
+.audio-recorder-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+#sendRecordingButton {
+  background: #245da0;
+  border-color: #3978d5;
+}
+
 #photoViewer {
   position: fixed;
   inset: 0;
@@ -827,7 +881,7 @@ button:disabled {
     </button>
 
     <button type="button" class="attach-button" id="audioButton">
-      🎵 Audio
+      🎙️ Record audio
     </button>
 
     <button type="button" class="attach-button" id="videoButton">
@@ -843,8 +897,23 @@ button:disabled {
   <input type="file" id="photoInput"
          accept="image/jpeg,image/png,image/webp" hidden>
 
-  <input type="file" id="audioInput"
-         accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg,.amr" hidden>
+  <section id="audioRecorder" hidden aria-label="Audio recorder">
+    <div id="audioRecorderInfo">
+      <span id="audioRecorderStatus" aria-live="polite">Ready to record</span>
+      <span id="audioRecorderTimer">00:00</span>
+    </div>
+
+    <audio id="audioPreview" controls hidden></audio>
+
+    <div id="audioRecorderActions">
+      <button type="button" class="audio-recorder-button"
+              id="stopRecordingButton" hidden>Stop recording</button>
+      <button type="button" class="audio-recorder-button"
+              id="cancelRecordingButton">Cancel</button>
+      <button type="button" class="audio-recorder-button"
+              id="sendRecordingButton" hidden disabled>Send audio</button>
+    </div>
+  </section>
 
   <input type="file" id="videoInput"
          accept="video/*" hidden>
@@ -991,8 +1060,20 @@ const audioButton = document.getElementById("audioButton");
 const videoButton = document.getElementById("videoButton");
 
 const photoInput = document.getElementById("photoInput");
-const audioInput = document.getElementById("audioInput");
 const videoInput = document.getElementById("videoInput");
+
+const audioRecorder = document.getElementById("audioRecorder");
+const audioRecorderStatus =
+  document.getElementById("audioRecorderStatus");
+const audioRecorderTimer =
+  document.getElementById("audioRecorderTimer");
+const audioPreview = document.getElementById("audioPreview");
+const stopRecordingButton =
+  document.getElementById("stopRecordingButton");
+const cancelRecordingButton =
+  document.getElementById("cancelRecordingButton");
+const sendRecordingButton =
+  document.getElementById("sendRecordingButton");
 
 const photoViewer = document.getElementById("photoViewer");
 const closePhotoViewerButton =
@@ -1045,6 +1126,16 @@ let profileDialogOpener = null;
 let sending = false;
 let uploadingMedia = false;
 let chatReady = false;
+
+/* In-browser audio recording state */
+let audioRecorderInstance = null;
+let audioRecorderStream = null;
+let audioRecordingChunks = [];
+let recordedAudioBlob = null;
+let recordedAudioURL = null;
+let audioRecordingStartedAt = 0;
+let audioRecordingTimer = null;
+let cancelCurrentRecording = false;
 
 /* The message currently selected for replying to */
 let selectedReply = null;
@@ -1986,11 +2077,11 @@ async function uploadToCloudinary(file, type) {
 
 /* Send an image, audio file, or video */
 async function sendMedia(file, type) {
-  if (!file || uploadingMedia) return;
+  if (!file || uploadingMedia) return false;
 
   if (!currentUser || !conversationId || !chatReady) {
     showStatus("Please wait for the conversation to finish loading.");
-    return;
+    return false;
   }
 
   let maximumSize;
@@ -2007,13 +2098,13 @@ async function sendMedia(file, type) {
     expectedType = "video/";
   } else {
     showStatus("Unsupported media type.");
-    return;
+    return false;
   }
 
   if (file.size > maximumSize) {
     const maximumMB = maximumSize / (1024 * 1024);
     showStatus(`This file is too large. The limit is ${maximumMB} MB.`);
-    return;
+    return false;
   }
 
   const fileExtension = file.name.includes(".")
@@ -2034,7 +2125,7 @@ async function sendMedia(file, type) {
     !audioExtensionAccepted
   ) {
     showStatus(`Please select a valid ${type} file.`);
-    return;
+    return false;
   }
 
   uploadingMedia = true;
@@ -2079,11 +2170,13 @@ async function sendMedia(file, type) {
     emojiPicker.style.display = "none";
     emojiButton.setAttribute("aria-expanded", "false");
     statusText.hidden = true;
+    return true;
   } catch (error) {
     console.error("Could not send media:", error);
     showStatus(
       "Media not sent. Check your internet connection, Cloudinary preset, and Firestore rules."
     );
+    return false;
   } finally {
     uploadingMedia = false;
     photoButton.disabled = false;
@@ -2098,8 +2191,229 @@ photoButton.addEventListener("click", () => {
   photoInput.click();
 });
 
-audioButton.addEventListener("click", () => {
-  audioInput.click();
+/* Start recording directly inside SIMPLEXPING */
+function formatRecordingTime(milliseconds) {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+function stopAudioRecordingTimer() {
+  if (audioRecordingTimer) {
+    clearInterval(audioRecordingTimer);
+    audioRecordingTimer = null;
+  }
+}
+
+function releaseAudioRecorderStream() {
+  if (audioRecorderStream) {
+    audioRecorderStream.getTracks().forEach(track => track.stop());
+    audioRecorderStream = null;
+  }
+}
+
+function clearRecordedAudioPreview() {
+  if (recordedAudioURL) {
+    URL.revokeObjectURL(recordedAudioURL);
+    recordedAudioURL = null;
+  }
+
+  audioPreview.pause();
+  audioPreview.removeAttribute("src");
+  audioPreview.load();
+  audioPreview.hidden = true;
+  recordedAudioBlob = null;
+  sendRecordingButton.hidden = true;
+  sendRecordingButton.disabled = true;
+}
+
+function closeAudioRecorder() {
+  stopAudioRecordingTimer();
+  releaseAudioRecorderStream();
+  clearRecordedAudioPreview();
+  audioRecorderInstance = null;
+  audioRecordingChunks = [];
+  cancelCurrentRecording = false;
+  audioRecorder.hidden = true;
+  stopRecordingButton.hidden = true;
+  cancelRecordingButton.hidden = false;
+  audioRecorderStatus.textContent = "Ready to record";
+  audioRecorderTimer.textContent = "00:00";
+  audioButton.disabled = false;
+}
+
+async function startAudioRecording() {
+  if (audioRecorderInstance || uploadingMedia) return;
+
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+    showStatus("In-app audio recording is not supported by this browser. Please try an updated Chrome browser.");
+    return;
+  }
+
+  if (!window.isSecureContext) {
+    showStatus("Microphone recording requires a secure HTTPS connection.");
+    return;
+  }
+
+  clearRecordedAudioPreview();
+  audioRecorder.hidden = false;
+  audioRecorderStatus.textContent = "Requesting microphone permission...";
+  audioButton.disabled = true;
+
+  try {
+    audioRecorderStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    const mimeTypes = [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/mp4",
+      "audio/ogg;codecs=opus",
+      "audio/ogg"
+    ];
+    const supportedMimeType = mimeTypes.find(type =>
+      MediaRecorder.isTypeSupported(type)
+    );
+
+    audioRecorderInstance = supportedMimeType
+      ? new MediaRecorder(audioRecorderStream, { mimeType: supportedMimeType })
+      : new MediaRecorder(audioRecorderStream);
+
+    audioRecordingChunks = [];
+    cancelCurrentRecording = false;
+
+    audioRecorderInstance.addEventListener("dataavailable", event => {
+      if (event.data && event.data.size > 0) {
+        audioRecordingChunks.push(event.data);
+      }
+    });
+
+    audioRecorderInstance.addEventListener("stop", () => {
+      stopAudioRecordingTimer();
+      releaseAudioRecorderStream();
+      audioRecorderInstance = null;
+      stopRecordingButton.hidden = true;
+      cancelRecordingButton.hidden = false;
+
+      if (cancelCurrentRecording) {
+        closeAudioRecorder();
+        return;
+      }
+
+      const mimeType = audioRecordingChunks[0]?.type || "audio/webm";
+      recordedAudioBlob = new Blob(audioRecordingChunks, { type: mimeType });
+      audioRecordingChunks = [];
+
+      if (!recordedAudioBlob.size) {
+        audioRecorderStatus.textContent = "No audio was captured. Please try again.";
+        sendRecordingButton.hidden = true;
+        sendRecordingButton.disabled = true;
+        audioButton.disabled = false;
+        return;
+      }
+
+      if (recordedAudioBlob.size > MAX_AUDIO_SIZE) {
+        audioRecorderStatus.textContent = "Recording is larger than the 10 MB limit. Please record a shorter message.";
+        clearRecordedAudioPreview();
+        audioButton.disabled = false;
+        return;
+      }
+
+      recordedAudioURL = URL.createObjectURL(recordedAudioBlob);
+      audioPreview.src = recordedAudioURL;
+      audioPreview.hidden = false;
+      audioPreview.load();
+      audioRecorderStatus.textContent = "Recording ready. Preview it or send it.";
+      sendRecordingButton.hidden = false;
+      sendRecordingButton.disabled = false;
+      audioButton.disabled = false;
+    });
+
+    audioRecorderInstance.addEventListener("error", event => {
+      console.error("Audio recorder error:", event.error || event);
+      showStatus("The microphone recording stopped unexpectedly. Please try again.");
+      closeAudioRecorder();
+    });
+
+    audioRecorderInstance.start(250);
+    audioRecordingStartedAt = Date.now();
+    audioRecorderStatus.textContent = "Recording...";
+    stopRecordingButton.hidden = false;
+    cancelRecordingButton.hidden = false;
+    sendRecordingButton.hidden = true;
+    audioRecordingTimer = setInterval(() => {
+      audioRecorderTimer.textContent = formatRecordingTime(
+        Date.now() - audioRecordingStartedAt
+      );
+    }, 250);
+  } catch (error) {
+    console.error("Could not start microphone recording:", error);
+    releaseAudioRecorderStream();
+    audioRecorderInstance = null;
+    audioButton.disabled = false;
+    audioRecorderStatus.textContent = "Microphone access was not available.";
+
+    if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+      showStatus("Microphone permission was denied. Allow microphone access in your browser settings, then try again.");
+    } else if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
+      showStatus("No microphone was found on this device.");
+    } else {
+      showStatus("Could not start recording. Please check your microphone and try again.");
+    }
+  }
+}
+
+audioButton.addEventListener("click", startAudioRecording);
+
+stopRecordingButton.addEventListener("click", () => {
+  if (audioRecorderInstance && audioRecorderInstance.state === "recording") {
+    audioRecorderStatus.textContent = "Finishing recording...";
+    stopRecordingButton.disabled = true;
+    audioRecorderInstance.stop();
+    stopRecordingButton.disabled = false;
+  }
+});
+
+cancelRecordingButton.addEventListener("click", () => {
+  if (audioRecorderInstance && audioRecorderInstance.state !== "inactive") {
+    cancelCurrentRecording = true;
+    audioRecorderStatus.textContent = "Cancelling recording...";
+    audioRecorderInstance.stop();
+  } else {
+    closeAudioRecorder();
+  }
+});
+
+sendRecordingButton.addEventListener("click", async () => {
+  if (!recordedAudioBlob || uploadingMedia) return;
+
+  const mimeType = recordedAudioBlob.type || "audio/webm";
+  let extension = "webm";
+  if (mimeType.includes("mp4")) extension = "m4a";
+  else if (mimeType.includes("ogg")) extension = "ogg";
+
+  const audioFile = new File(
+    [recordedAudioBlob],
+    `simplexping-audio-${Date.now()}.${extension}`,
+    { type: mimeType }
+  );
+
+  sendRecordingButton.disabled = true;
+  cancelRecordingButton.disabled = true;
+  const sent = await sendMedia(audioFile, "audio");
+  cancelRecordingButton.disabled = false;
+
+  if (sent) {
+    closeAudioRecorder();
+  } else {
+    sendRecordingButton.disabled = false;
+  }
+});
+
+window.addEventListener("pagehide", () => {
+  stopAudioRecordingTimer();
+  releaseAudioRecorderStream();
+  if (recordedAudioURL) URL.revokeObjectURL(recordedAudioURL);
 });
 
 videoButton.addEventListener("click", () => {
@@ -2114,16 +2428,6 @@ photoInput.addEventListener("change", async () => {
     if (file) await sendMedia(file, "image");
   } finally {
     photoInput.value = "";
-  }
-});
-
-audioInput.addEventListener("change", async () => {
-  const file = audioInput.files?.[0];
-
-  try {
-    if (file) await sendMedia(file, "audio");
-  } finally {
-    audioInput.value = "";
   }
 });
 
