@@ -1029,6 +1029,7 @@ import {
 /* Cloudinary configuration */
 const CLOUD_NAME = "ewzaj6yw";
 const CHAT_MEDIA_UPLOAD_PRESET = "simplexping_chat_media";
+const CHAT_MEDIA_ASSET_FOLDER = "simplexping/chat-media";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
@@ -2050,6 +2051,7 @@ async function uploadToCloudinary(file, type) {
   }
 
   const resourceType = type === "image" ? "image" : "video";
+
   const uploadURL =
     `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
 
@@ -2069,12 +2071,13 @@ async function uploadToCloudinary(file, type) {
     !result.secure_url ||
     !result.asset_id ||
     !result.public_id ||
-    !result.resource_type
+    !result.resource_type ||
+    result.asset_folder !== CHAT_MEDIA_ASSET_FOLDER
   ) {
     console.error("Cloudinary upload failed:", result);
     throw new Error(
       result.error?.message ||
-      "The media upload failed or Cloudinary returned incomplete asset details."
+      `The media upload failed or Cloudinary returned incomplete details. Expected asset folder: ${CHAT_MEDIA_ASSET_FOLDER}. Received: ${result.asset_folder || "(missing)"}.`
     );
   }
 
@@ -2083,10 +2086,9 @@ async function uploadToCloudinary(file, type) {
     assetId: result.asset_id,
     publicId: result.public_id,
     resourceType: result.resource_type,
-    assetFolder: result.asset_folder || ""
+    assetFolder: result.asset_folder
   };
 }
-
 
 /* Send an image, audio file, or video */
 async function sendMedia(file, type) {
@@ -2154,6 +2156,7 @@ async function sendMedia(file, type) {
     const caption = messageInput.value.trim();
 
     const messageData = {
+      isChatMedia: true,
       text: caption,
       type,
       mediaUrl: upload.secureUrl,
@@ -2204,7 +2207,6 @@ async function sendMedia(file, type) {
     sendButton.disabled = false;
   }
 }
-
 
 /* Open the appropriate file picker */
 photoButton.addEventListener("click", () => {
