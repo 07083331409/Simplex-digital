@@ -131,23 +131,213 @@ input {
   font-size: 12px;
 }
 
-.members-button {
-  min-height: 40px;
-  padding: 8px 11px;
+.group-menu-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.group-menu-button {
+  width: 42px;
+  height: 42px;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  justify-content: center;
   border: 1px solid #38516f;
   border-radius: 9px;
   background: #172a43;
   color: #dce8f8;
+  font-size: 24px;
+  line-height: 1;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-.members-button:hover {
+.group-menu-button:hover,
+.group-menu-button[aria-expanded="true"] {
   border-color: #5c99f0;
   background: #1b3455;
+}
+
+.group-menu-dropdown {
+  position: absolute;
+  z-index: 4;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 230px;
+  padding: 6px;
+  border: 1px solid #38516f;
+  border-radius: 11px;
+  background: #102039;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .35);
+}
+
+.group-menu-dropdown[hidden] {
+  display: none;
+}
+
+.group-menu-item {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #e8eef7;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.group-menu-item:hover,
+.group-menu-item:focus-visible {
+  background: #1b3455;
+  outline: none;
+}
+
+.group-menu-item[hidden] {
+  display: none;
+}
+
+.group-menu-divider {
+  height: 1px;
+  margin: 5px 4px;
+  background: #263b56;
+}
+
+.group-menu-item.danger {
+  color: #ffb9c3;
+}
+
+.member-remove-button {
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid #753d51;
+  border-radius: 8px;
+  background: #291c2b;
+  color: #ffb9c3;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.member-remove-button:hover:not(:disabled) {
+  background: #442436;
+}
+
+.member-remove-button:disabled {
+  opacity: .5;
+  cursor: wait;
+}
+
+.group-info-list {
+  margin: 0;
+  padding: 8px 18px 18px;
+}
+
+.group-info-row {
+  padding: 12px 0;
+  border-bottom: 1px solid #243b59;
+}
+
+.group-info-row:last-child {
+  border-bottom: 0;
+}
+
+.group-info-row dt {
+  margin-bottom: 5px;
+  color: #91a6c0;
+  font-size: 12px;
+}
+
+.group-info-row dd {
+  margin: 0;
+  color: #e8eef7;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.add-contact-list {
+  max-height: min(48vh, 360px);
+  overflow-y: auto;
+  border: 1px solid #294361;
+  border-radius: 9px;
+}
+
+.add-contact-item {
+  min-height: 58px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #243b59;
+  cursor: pointer;
+}
+
+.add-contact-item:last-child {
+  border-bottom: 0;
+}
+
+.add-contact-item input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  accent-color: #3978d5;
+}
+
+.add-contact-avatar {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #49617f;
+  border-radius: 50%;
+  background: #28518a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.add-contact-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.add-contact-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.add-contact-details strong {
+  display: block;
+  color: #e8eef7;
+  font-size: 13px;
+}
+
+.add-contact-details small {
+  color: #91a6c0;
+  font-size: 11px;
+}
+
+.modal-note {
+  margin: -7px 0 14px;
+  color: #91a6c0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.modal-body {
+  padding: 18px;
+}
+
+.modal-actions button:disabled {
+  opacity: .55;
+  cursor: wait;
 }
 
 #chatStatus {
@@ -470,15 +660,25 @@ input {
     font-size: 15px;
   }
 
-  .members-button {
+  .group-menu-button {
     width: 42px;
-    padding: 8px;
-    justify-content: center;
-    font-size: 0;
+    height: 42px;
   }
 
-  .members-button .members-icon {
-    font-size: 18px;
+  .group-menu-dropdown {
+    position: fixed;
+    top: auto;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: 12px;
+    width: auto;
+    padding: 8px;
+    border-radius: 15px;
+  }
+
+  .group-menu-item {
+    min-height: 48px;
+    padding: 12px;
   }
 
   #messages {
@@ -524,16 +724,35 @@ input {
         <h1 id="groupName">Group chat</h1>
         <p>SIMPLEXPING group conversation</p>
       </div>
-      <button
-        class="members-button"
-        id="membersButton"
-        type="button"
-        aria-haspopup="dialog"
-        aria-controls="membersModal"
-      >
-        <span class="members-icon" aria-hidden="true">👥</span>
-        Members <span id="memberCount">0</span>
-      </button>
+      <div class="group-menu-wrap">
+        <button
+          class="group-menu-button"
+          id="groupMenuButton"
+          type="button"
+          aria-label="Group options"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          aria-controls="groupMenu"
+        >⋮</button>
+        <div class="group-menu-dropdown" id="groupMenu" role="menu" hidden>
+          <button class="group-menu-item" type="button" role="menuitem" data-action="view-members">
+            View Members
+          </button>
+          <button class="group-menu-item" id="addMembersMenuItem" type="button" role="menuitem" data-action="add-members" hidden>
+            Add Members
+          </button>
+          <button class="group-menu-item" type="button" role="menuitem" data-action="group-information">
+            Group Information
+          </button>
+          <button class="group-menu-item" id="removeMembersMenuItem" type="button" role="menuitem" data-action="remove-members" hidden>
+            Remove Members
+          </button>
+          <div class="group-menu-divider" role="separator"></div>
+          <button class="group-menu-item danger" type="button" role="menuitem" data-action="leave-group">
+            Leave Group
+          </button>
+        </div>
+      </div>
     </header>
 
     <div id="chatStatus" role="status" hidden></div>
@@ -571,7 +790,7 @@ input {
 >
   <section class="members-panel">
     <header class="members-panel-header">
-      <h2 id="membersHeading">Group members</h2>
+      <h2 id="membersHeading"><span id="membersHeadingText">Group members</span> (<span id="memberCount">0</span>)</h2>
       <button
         class="close-button"
         id="closeMembersButton"
@@ -585,17 +804,65 @@ input {
   </section>
 </div>
 
+<div
+  class="members-modal"
+  id="addMembersModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="addMembersHeading"
+  hidden
+>
+  <section class="members-panel">
+    <header class="members-panel-header">
+      <h2 id="addMembersHeading">Add Members</h2>
+      <button class="close-button" id="closeAddMembersButton" type="button" aria-label="Close add members">×</button>
+    </header>
+    <form id="addMembersForm">
+      <div class="modal-body">
+        <p class="modal-note">Select accepted contacts to add them directly to this group.</p>
+        <div class="add-contact-list" id="addContactsList">
+          <div class="member-status">Loading accepted contacts...</div>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary" id="cancelAddMembersButton" type="button">Cancel</button>
+          <button id="saveAddMembersButton" type="submit">Add Selected</button>
+        </div>
+      </div>
+    </form>
+  </section>
+</div>
+
+<div
+  class="members-modal"
+  id="groupInfoModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="groupInfoHeading"
+  hidden
+>
+  <section class="members-panel">
+    <header class="members-panel-header">
+      <h2 id="groupInfoHeading">Group Information</h2>
+      <button class="close-button" id="closeGroupInfoButton" type="button" aria-label="Close group information">×</button>
+    </header>
+    <dl class="group-info-list" id="groupInfoList"></dl>
+  </section>
+</div>
+
 <script type="module">
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
   onSnapshot,
   orderBy,
   query,
-  serverTimestamp
+  serverTimestamp,
+  where,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 import {
@@ -615,16 +882,34 @@ const messagesBox = document.getElementById("messages");
 const messageForm = document.getElementById("messageForm");
 const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
-const membersButton = document.getElementById("membersButton");
+const groupMenuButton = document.getElementById("groupMenuButton");
+const groupMenu = document.getElementById("groupMenu");
+const addMembersMenuItem = document.getElementById("addMembersMenuItem");
+const removeMembersMenuItem = document.getElementById("removeMembersMenuItem");
 const membersModal = document.getElementById("membersModal");
 const closeMembersButton = document.getElementById("closeMembersButton");
 const membersList = document.getElementById("membersList");
+const membersHeadingText = document.getElementById("membersHeadingText");
+const addMembersModal = document.getElementById("addMembersModal");
+const addMembersForm = document.getElementById("addMembersForm");
+const addContactsList = document.getElementById("addContactsList");
+const saveAddMembersButton = document.getElementById("saveAddMembersButton");
+const groupInfoModal = document.getElementById("groupInfoModal");
+const groupInfoList = document.getElementById("groupInfoList");
 
 let currentUser = null;
+let groupData = null;
+let currentMembership = null;
+let groupMembers = [];
 let memberProfiles = new Map();
+let acceptedContacts = [];
 let messagesReady = false;
 let sending = false;
+let actionBusy = false;
+let membersMode = "view";
+let membersRenderVersion = 0;
 let stopMembershipListener = null;
+let stopMembersListener = null;
 let stopMessagesListener = null;
 let membershipActive = false;
 
@@ -660,7 +945,7 @@ function getMemberName(member, profile) {
   return name ? name.trim() : "SIMPLEXPING member";
 }
 
-function makeMemberRow(member, profile) {
+function makeMemberRow(member, profile, canRemove = false) {
   const name = getMemberName(member, profile);
   const row = document.createElement("div");
   row.className = "member-item";
@@ -694,6 +979,17 @@ function makeMemberRow(member, profile) {
   }
 
   row.append(avatar, details);
+
+  if (canRemove) {
+    const removeButton = document.createElement("button");
+    removeButton.className = "member-remove-button";
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.setAttribute("aria-label", "Remove " + name + " from group");
+    removeButton.addEventListener("click", () => removeMember(member.userId, removeButton));
+    row.appendChild(removeButton);
+  }
+
   return row;
 }
 
@@ -760,30 +1056,61 @@ function renderMessages(snapshot) {
   messagesBox.scrollTop = messagesBox.scrollHeight;
 }
 
-async function loadMembers() {
-  const membersSnapshot = await getDocs(
-    collection(db, "groupConversations", groupId, "members")
-  );
-  const members = membersSnapshot.docs
+async function renderMembersSnapshot(snapshot) {
+  const renderVersion = ++membersRenderVersion;
+  const members = snapshot.docs
     .map(memberDocument => memberDocument.data())
     .filter(member => typeof member.userId === "string");
 
-  if (!members.some(member => member.userId === currentUser.uid)) {
-    throw new Error("Your active group membership could not be verified.");
+  currentMembership = members.find(member => member.userId === currentUser.uid) || null;
+  if (!currentMembership) {
+    membershipActive = false;
+    messagesReady = false;
+    messageInput.disabled = true;
+    sendButton.disabled = true;
+    showChatStatus("Your active group membership has ended.", true);
+    return;
   }
 
-  const profiles = await Promise.all(members.map(async member => {
-    const profileSnapshot = await getDoc(doc(db, "users", member.userId));
-    return [
-      member.userId,
-      profileSnapshot.exists() ? profileSnapshot.data() : {}
-    ];
-  }));
-  memberProfiles = new Map(profiles);
-  memberCount.textContent = String(members.length);
-  membersList.replaceChildren();
+  groupMembers = members;
+  addMembersMenuItem.hidden = currentMembership.role !== "admin";
+  removeMembersMenuItem.hidden = currentMembership.role !== "admin";
 
-  if (members.length === 0) {
+  try {
+    const profiles = await Promise.all(members.map(async member => {
+      const profileSnapshot = await getDoc(doc(db, "users", member.userId));
+      return [
+        member.userId,
+        profileSnapshot.exists() ? profileSnapshot.data() : {}
+      ];
+    }));
+    if (renderVersion !== membersRenderVersion) return;
+    profiles.forEach(([userId, profile]) => memberProfiles.set(userId, profile));
+  } catch (error) {
+    if (renderVersion !== membersRenderVersion) return;
+    console.error("Could not load group member profiles:", error);
+    showChatStatus(
+      "Member names or profile pictures could not be refreshed. " +
+      (error.code || error.message),
+      true
+    );
+  }
+
+  groupMembers.sort((a, b) => {
+    if (a.role === "admin" && b.role !== "admin") return -1;
+    if (b.role === "admin" && a.role !== "admin") return 1;
+    return getMemberName(a, memberProfiles.get(a.userId) || {})
+      .localeCompare(getMemberName(b, memberProfiles.get(b.userId) || {}));
+  });
+
+  memberCount.textContent = String(groupMembers.length);
+  renderMembersList();
+  if (!groupInfoModal.hidden) renderGroupInformation();
+}
+
+function renderMembersList() {
+  membersList.replaceChildren();
+  if (groupMembers.length === 0) {
     const empty = document.createElement("div");
     empty.className = "member-status";
     empty.textContent = "No members to display.";
@@ -791,17 +1118,104 @@ async function loadMembers() {
     return;
   }
 
-  members.sort((a, b) => {
-    if (a.role === "admin" && b.role !== "admin") return -1;
-    if (b.role === "admin" && a.role !== "admin") return 1;
-    return getMemberName(a, memberProfiles.get(a.userId) || {})
-      .localeCompare(getMemberName(b, memberProfiles.get(b.userId) || {}));
-  });
+  const rows = groupMembers.map(member => makeMemberRow(
+    member,
+    memberProfiles.get(member.userId) || {},
+    membersMode === "remove" &&
+      currentMembership?.role === "admin" &&
+      member.role === "member"
+  ));
 
-  members.forEach(member => {
-    membersList.appendChild(
-      makeMemberRow(member, memberProfiles.get(member.userId) || {})
-    );
+  rows.forEach(row => membersList.appendChild(row));
+
+  if (
+    membersMode === "remove" &&
+    !groupMembers.some(member => member.role === "member")
+  ) {
+    const empty = document.createElement("div");
+    empty.className = "member-status";
+    empty.textContent = "There are no ordinary members to remove. Administrators cannot remove other administrators.";
+    membersList.appendChild(empty);
+  }
+}
+
+async function loadMembers() {
+  const snapshot = await getDocs(
+    collection(db, "groupConversations", groupId, "members")
+  );
+  await renderMembersSnapshot(snapshot);
+}
+
+async function getActiveMembership() {
+  const membershipSnapshot = await getDoc(
+    doc(db, "groupConversations", groupId, "members", currentUser.uid)
+  );
+  const membership = membershipSnapshot.exists()
+    ? membershipSnapshot.data()
+    : null;
+
+  if (!membership || membership.userId !== currentUser.uid) {
+    membershipActive = false;
+    throw new Error("Your active group membership could not be verified.");
+  }
+
+  currentMembership = membership;
+  membershipActive = true;
+  addMembersMenuItem.hidden = membership.role !== "admin";
+  removeMembersMenuItem.hidden = membership.role !== "admin";
+  return membership;
+}
+
+async function requireGroupAdmin() {
+  const membership = await getActiveMembership();
+  if (membership.role !== "admin") {
+    throw new Error("Only an active group administrator can perform this action.");
+  }
+  return membership;
+}
+
+function openModal(modal, closeButton) {
+  closeGroupMenu();
+  modal.hidden = false;
+  closeButton.focus();
+}
+
+function closeModal(modal, returnFocus = true) {
+  modal.hidden = true;
+  if (returnFocus) groupMenuButton.focus();
+}
+
+function closeGroupMenu() {
+  groupMenu.hidden = true;
+  groupMenuButton.setAttribute("aria-expanded", "false");
+}
+
+function renderGroupInformation() {
+  const creatorId = groupData?.createdBy || "";
+  const creatorProfile = memberProfiles.get(creatorId) || {};
+  const creatorName = getMemberName({ userId: creatorId }, creatorProfile);
+  const createdAt = groupData?.createdAt;
+  const createdDate = createdAt && typeof createdAt.toDate === "function"
+    ? createdAt.toDate().toLocaleString()
+    : "Not available";
+
+  const details = [
+    ["Group name", groupData?.groupName || "Unnamed group"],
+    ["Creator", creatorName],
+    ["Created", createdDate],
+    ["Members", String(groupMembers.length)]
+  ];
+
+  groupInfoList.replaceChildren();
+  details.forEach(([label, value]) => {
+    const row = document.createElement("div");
+    row.className = "group-info-row";
+    const term = document.createElement("dt");
+    term.textContent = label;
+    const description = document.createElement("dd");
+    description.textContent = value;
+    row.append(term, description);
+    groupInfoList.appendChild(row);
   });
 }
 
@@ -809,6 +1223,10 @@ function stopChatListeners() {
   if (typeof stopMembershipListener === "function") {
     stopMembershipListener();
     stopMembershipListener = null;
+  }
+  if (typeof stopMembersListener === "function") {
+    stopMembersListener();
+    stopMembersListener = null;
   }
   if (typeof stopMessagesListener === "function") {
     stopMessagesListener();
@@ -845,6 +1263,8 @@ async function openGroup(user) {
       showPageError("You are not an active member of this group.");
       return;
     }
+    currentMembership = membershipSnapshot.data();
+    membershipActive = true;
 
     const groupSnapshot = await getDoc(
       doc(db, "groupConversations", groupId)
@@ -855,10 +1275,13 @@ async function openGroup(user) {
       return;
     }
 
-    groupName.textContent = groupSnapshot.data().groupName || "Unnamed group";
+    groupData = groupSnapshot.data();
+    groupName.textContent = groupData.groupName || "Unnamed group";
     await loadMembers();
+    if (!currentMembership) {
+      throw new Error("Your active group membership could not be verified.");
+    }
 
-    membershipActive = true;
     stopMembershipListener = onSnapshot(
       membershipRef,
       snapshot => {
@@ -874,6 +1297,10 @@ async function openGroup(user) {
             stopMessagesListener();
             stopMessagesListener = null;
           }
+          if (typeof stopMembersListener === "function") {
+            stopMembersListener();
+            stopMembersListener = null;
+          }
           showChatStatus("Your active group membership has ended.", true);
         }
       },
@@ -887,6 +1314,10 @@ async function openGroup(user) {
           stopMessagesListener();
           stopMessagesListener = null;
         }
+        if (typeof stopMembersListener === "function") {
+          stopMembersListener();
+          stopMembersListener = null;
+        }
         showChatStatus(
           "Could not verify your group membership. Check your connection and permissions.",
           true
@@ -897,6 +1328,28 @@ async function openGroup(user) {
     loading.hidden = true;
     chatApp.hidden = false;
     showChatStatus("Loading messages...");
+
+    stopMembersListener = onSnapshot(
+      collection(db, "groupConversations", groupId, "members"),
+      snapshot => {
+        renderMembersSnapshot(snapshot).catch(error => {
+          console.error("Could not refresh group members:", error);
+          showChatStatus(
+            "Could not refresh the group members. " +
+            (error.code || error.message),
+            true
+          );
+        });
+      },
+      error => {
+        console.error("Group members listener error:", error);
+        showChatStatus(
+          "Could not keep the group members list up to date. " +
+          (error.code || error.message),
+          true
+        );
+      }
+    );
 
     const messagesQuery = query(
       collection(db, "groupConversations", groupId, "messages"),
@@ -931,6 +1384,349 @@ async function openGroup(user) {
       "Could not open this group chat. Check your connection and Firestore permissions." +
       (detail ? " Error: " + detail : "")
     );
+  }
+}
+
+async function loadAcceptedContacts() {
+  addContactsList.replaceChildren();
+  const loadingMessage = document.createElement("div");
+  loadingMessage.className = "member-status";
+  loadingMessage.textContent = "Loading accepted contacts...";
+  addContactsList.appendChild(loadingMessage);
+  acceptedContacts = [];
+
+  const [contactsSnapshot, membersSnapshot] = await Promise.all([
+    getDocs(query(
+      collection(db, "contacts"),
+      where("participants", "array-contains", currentUser.uid)
+    )),
+    getDocs(collection(db, "groupConversations", groupId, "members"))
+  ]);
+  const memberIds = new Set(
+    membersSnapshot.docs
+      .map(memberDocument => memberDocument.data().userId)
+      .filter(userId => typeof userId === "string")
+  );
+  const contacts = [];
+  const seenUserIds = new Set();
+
+  for (const contactDocument of contactsSnapshot.docs) {
+    const contact = contactDocument.data();
+    if (!Array.isArray(contact.participants) || contact.participants.length !== 2) {
+      continue;
+    }
+
+    const userId = contact.participants.find(id => id !== currentUser.uid);
+    if (!userId || memberIds.has(userId) || seenUserIds.has(userId)) continue;
+    seenUserIds.add(userId);
+
+    const profileSnapshot = await getDoc(doc(db, "users", userId));
+    if (!profileSnapshot.exists()) continue;
+    const profile = profileSnapshot.data();
+
+    contacts.push({
+      contactId: contactDocument.id,
+      userId,
+      fullName:
+        (typeof profile.fullName === "string" && profile.fullName.trim()) ||
+        (typeof profile.username === "string" && profile.username.trim()) ||
+        "User",
+      username: typeof profile.username === "string" ? profile.username : "",
+      photoURL: typeof profile.photoURL === "string" ? profile.photoURL : ""
+    });
+  }
+
+  contacts.sort((a, b) => a.fullName.localeCompare(b.fullName));
+  acceptedContacts = contacts;
+  addContactsList.replaceChildren();
+
+  if (contacts.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "member-status";
+    empty.textContent = "All accepted contacts are already members, or no accepted contacts were found.";
+    addContactsList.appendChild(empty);
+    return;
+  }
+
+  contacts.forEach(contact => {
+    const label = document.createElement("label");
+    label.className = "add-contact-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = contact.userId;
+    label.appendChild(checkbox);
+
+    const avatar = document.createElement("div");
+    avatar.className = "add-contact-avatar";
+    avatar.textContent = getInitials(contact.fullName);
+
+    if (typeof contact.photoURL === "string" && contact.photoURL.trim()) {
+      const image = document.createElement("img");
+      image.src = contact.photoURL;
+      image.alt = "";
+      image.loading = "lazy";
+      image.addEventListener("error", () => image.remove(), { once: true });
+      avatar.appendChild(image);
+    }
+    label.appendChild(avatar);
+
+    const details = document.createElement("span");
+    details.className = "add-contact-details";
+    const name = document.createElement("strong");
+    name.textContent = contact.fullName;
+    details.appendChild(name);
+    if (contact.username) {
+      const username = document.createElement("small");
+      username.textContent = "@" + contact.username;
+      details.appendChild(username);
+    }
+    label.appendChild(details);
+    addContactsList.appendChild(label);
+  });
+}
+
+async function showMembers(mode) {
+  showChatStatus(mode === "remove"
+    ? "Loading members and verifying administrator access..."
+    : "Loading group members...");
+  if (mode === "remove") {
+    await requireGroupAdmin();
+  } else {
+    await getActiveMembership();
+  }
+
+  await loadMembers();
+  membersMode = mode;
+  membersHeadingText.textContent = mode === "remove"
+    ? "Remove members"
+    : "Group members";
+  renderMembersList();
+  showChatStatus("");
+  openModal(membersModal, closeMembersButton);
+}
+
+async function showAddMembers() {
+  await requireGroupAdmin();
+  openModal(addMembersModal, document.getElementById("closeAddMembersButton"));
+  try {
+    await loadAcceptedContacts();
+  } catch (error) {
+    console.error("Could not load accepted contacts:", error);
+    addContactsList.replaceChildren();
+    const message = document.createElement("div");
+    message.className = "member-status";
+    message.textContent =
+      "Could not load accepted contacts. " + (error.code || error.message);
+    addContactsList.appendChild(message);
+    throw error;
+  }
+}
+
+async function showGroupInformation() {
+  showChatStatus("Loading group information...");
+  await getActiveMembership();
+  const snapshot = await getDoc(doc(db, "groupConversations", groupId));
+  if (!snapshot.exists()) {
+    throw new Error("This group could not be found.");
+  }
+  groupData = snapshot.data();
+
+  if (
+    groupData.createdBy &&
+    !memberProfiles.has(groupData.createdBy)
+  ) {
+    const creatorProfile = await getDoc(doc(db, "users", groupData.createdBy));
+    memberProfiles.set(
+      groupData.createdBy,
+      creatorProfile.exists() ? creatorProfile.data() : {}
+    );
+  }
+
+  renderGroupInformation();
+  showChatStatus("");
+  openModal(groupInfoModal, document.getElementById("closeGroupInfoButton"));
+}
+
+async function removeMember(userId, button) {
+  if (actionBusy) return;
+  actionBusy = true;
+
+  try {
+    await requireGroupAdmin();
+    const memberRef = doc(db, "groupConversations", groupId, "members", userId);
+    const memberSnapshot = await getDoc(memberRef);
+    if (!memberSnapshot.exists()) {
+      throw new Error("This member is no longer in the group.");
+    }
+    if (memberSnapshot.data().role !== "member" || userId === currentUser.uid) {
+      throw new Error("Administrators can remove ordinary members only.");
+    }
+
+    const profile = memberProfiles.get(userId) || {};
+    const memberName = getMemberName({ userId }, profile);
+    if (!window.confirm("Remove " + memberName + " from this group?")) return;
+
+    button.disabled = true;
+    await deleteDoc(memberRef);
+    await loadMembers();
+    showChatStatus(memberName + " was removed from the group.");
+  } catch (error) {
+    console.error("Could not remove group member:", error);
+    showChatStatus("Could not remove this member. " + (error.code || error.message), true);
+  } finally {
+    actionBusy = false;
+    button.disabled = false;
+  }
+}
+
+async function addSelectedMembers(event) {
+  event.preventDefault();
+  if (actionBusy) return;
+
+  const selectedIds = Array.from(
+    addContactsList.querySelectorAll("input[type='checkbox']:checked")
+  ).map(input => input.value);
+  if (selectedIds.length === 0) {
+    showChatStatus("Select at least one accepted contact to add.", true);
+    return;
+  }
+  if (selectedIds.length > 450) {
+    showChatStatus("Add no more than 450 members at a time.", true);
+    return;
+  }
+
+  actionBusy = true;
+  saveAddMembersButton.disabled = true;
+  saveAddMembersButton.textContent = "Adding...";
+
+  try {
+    await requireGroupAdmin();
+    const selectedContacts = acceptedContacts.filter(contact =>
+      selectedIds.includes(contact.userId)
+    );
+    if (selectedContacts.length !== selectedIds.length) {
+      throw new Error("One or more selected contacts could not be verified. Reload and try again.");
+    }
+
+    const contactsToAdd = [];
+    for (const contact of selectedContacts) {
+      const [contactSnapshot, memberSnapshot] = await Promise.all([
+        getDoc(doc(db, "contacts", contact.contactId)),
+        getDoc(doc(db, "groupConversations", groupId, "members", contact.userId))
+      ]);
+
+      if (memberSnapshot.exists()) continue;
+      if (!contactSnapshot.exists()) {
+        throw new Error("An accepted contact is no longer available.");
+      }
+
+      const participants = contactSnapshot.data().participants;
+      if (
+        !Array.isArray(participants) ||
+        participants.length !== 2 ||
+        !participants.includes(currentUser.uid) ||
+        !participants.includes(contact.userId)
+      ) {
+        throw new Error("A selected contact could not be verified as accepted.");
+      }
+
+      contactsToAdd.push(contact);
+    }
+
+    if (contactsToAdd.length === 0) {
+      showChatStatus("The selected contacts are already group members.");
+      closeModal(addMembersModal);
+      return;
+    }
+
+    const batch = writeBatch(db);
+    contactsToAdd.forEach(contact => {
+      batch.set(
+        doc(db, "groupConversations", groupId, "members", contact.userId),
+        {
+          userId: contact.userId,
+          role: "member",
+          addedBy: currentUser.uid,
+          contactId: contact.contactId,
+          joinedAt: serverTimestamp()
+        }
+      );
+    });
+    await batch.commit();
+    await loadMembers();
+    closeModal(addMembersModal);
+    showChatStatus(
+      contactsToAdd.length === 1
+        ? "Member added to the group."
+        : contactsToAdd.length + " members added to the group."
+    );
+  } catch (error) {
+    console.error("Could not add group members:", error);
+    showChatStatus("Could not add the selected contacts. " + (error.code || error.message), true);
+  } finally {
+    actionBusy = false;
+    saveAddMembersButton.disabled = false;
+    saveAddMembersButton.textContent = "Add Selected";
+  }
+}
+
+async function leaveGroup() {
+  if (actionBusy) return;
+  actionBusy = true;
+
+  try {
+    const membership = await getActiveMembership();
+    if (membership.role === "admin") {
+      showChatStatus(
+        "Administrators cannot leave under the current Firestore rules. " +
+        "The members delete rule permits self-removal only when resource.data.role == 'member'.",
+        true
+      );
+      return;
+    }
+
+    const membersSnapshot = await getDocs(
+      collection(db, "groupConversations", groupId, "members")
+    );
+    if (!membersSnapshot.docs.some(member => member.data().role === "admin")) {
+      throw new Error("You cannot leave because this group has no active administrator.");
+    }
+
+    if (!window.confirm("Leave this group? You will no longer see its messages.")) return;
+
+    await deleteDoc(doc(db, "groupConversations", groupId, "members", currentUser.uid));
+    membershipActive = false;
+    messagesReady = false;
+    messageInput.disabled = true;
+    sendButton.disabled = true;
+    showChatStatus("You left the group. Returning to your groups...");
+    window.setTimeout(() => window.location.replace("groups.html"), 700);
+  } catch (error) {
+    console.error("Could not leave group:", error);
+    showChatStatus("Could not leave this group. " + (error.code || error.message), true);
+  } finally {
+    actionBusy = false;
+  }
+}
+
+async function handleGroupMenuAction(action) {
+  closeGroupMenu();
+  try {
+    if (action === "view-members") {
+      await showMembers("view");
+    } else if (action === "add-members") {
+      await showAddMembers();
+    } else if (action === "group-information") {
+      await showGroupInformation();
+    } else if (action === "remove-members") {
+      await showMembers("remove");
+    } else if (action === "leave-group") {
+      await leaveGroup();
+    }
+  } catch (error) {
+    console.error("Group action failed:", error);
+    showChatStatus(error.code || error.message, true);
   }
 }
 
@@ -985,14 +1781,42 @@ messageForm.addEventListener("submit", async event => {
   }
 });
 
-membersButton.addEventListener("click", () => {
-  membersModal.hidden = false;
-  closeMembersButton.focus();
+groupMenuButton.addEventListener("click", () => {
+  const isOpen = !groupMenu.hidden;
+  groupMenu.hidden = isOpen;
+  groupMenuButton.setAttribute("aria-expanded", String(!isOpen));
+  if (!isOpen) {
+    const firstItem = groupMenu.querySelector(
+      ".group-menu-item:not([hidden])"
+    );
+    if (firstItem) firstItem.focus();
+  }
 });
 
+groupMenu.addEventListener("click", event => {
+  const item = event.target.closest("[data-action]");
+  if (!item || item.hidden || actionBusy) return;
+  handleGroupMenuAction(item.dataset.action);
+});
+
+document.addEventListener("click", event => {
+  if (
+    !groupMenu.hidden &&
+    !groupMenu.contains(event.target) &&
+    event.target !== groupMenuButton
+  ) {
+    closeGroupMenu();
+  }
+});
+
+document.getElementById("addMembersForm").addEventListener(
+  "submit",
+  addSelectedMembers
+);
+
 function closeMembers() {
-  membersModal.hidden = true;
-  membersButton.focus();
+  membersMode = "view";
+  closeModal(membersModal);
 }
 
 closeMembersButton.addEventListener("click", closeMembers);
@@ -1000,9 +1824,42 @@ membersModal.addEventListener("click", event => {
   if (event.target === membersModal) closeMembers();
 });
 
+function closeAddMembers() {
+  closeModal(addMembersModal);
+}
+
+document.getElementById("closeAddMembersButton").addEventListener(
+  "click",
+  closeAddMembers
+);
+document.getElementById("cancelAddMembersButton").addEventListener(
+  "click",
+  closeAddMembers
+);
+addMembersModal.addEventListener("click", event => {
+  if (event.target === addMembersModal) closeAddMembers();
+});
+
+function closeGroupInfo() {
+  closeModal(groupInfoModal);
+}
+
+document.getElementById("closeGroupInfoButton").addEventListener(
+  "click",
+  closeGroupInfo
+);
+groupInfoModal.addEventListener("click", event => {
+  if (event.target === groupInfoModal) closeGroupInfo();
+});
+
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && !membersModal.hidden) {
-    closeMembers();
+  if (event.key !== "Escape") return;
+  if (!membersModal.hidden) closeMembers();
+  else if (!addMembersModal.hidden) closeAddMembers();
+  else if (!groupInfoModal.hidden) closeGroupInfo();
+  else {
+    closeGroupMenu();
+    groupMenuButton.focus();
   }
 });
 </script>
