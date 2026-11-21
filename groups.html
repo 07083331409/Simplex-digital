@@ -1,0 +1,720 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#091426">
+<title>SIMPLEXPING | Groups</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #081321;
+  color: #e8eef7;
+  min-height: 100vh;
+}
+
+header {
+  background: #0d1b30;
+  border-bottom: 1px solid #20334d;
+  padding: 17px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+header h2 {
+  margin: 0;
+  color: #6da5ff;
+  font-size: 21px;
+}
+
+header a {
+  color: #b8c9df;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+main {
+  width: 100%;
+  max-width: 750px;
+  margin: 28px auto;
+  padding: 0 16px 40px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.top h1 {
+  font-size: 23px;
+  margin: 0;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 11px 16px;
+  background: #3978d5;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.secondary {
+  background: #24364e;
+}
+
+.group-card {
+  background: #102039;
+  border: 1px solid #243b59;
+  border-radius: 12px;
+  padding: 17px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.group-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #244d80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 19px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.group-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.group-info h3 {
+  margin: 0 0 5px;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.group-info p {
+  margin: 0;
+  color: #9eb0c8;
+  font-size: 13px;
+}
+
+.empty {
+  text-align: center;
+  padding: 35px 15px;
+  color: #9eb0c8;
+  background: #102039;
+  border: 1px solid #243b59;
+  border-radius: 12px;
+}
+
+#message {
+  margin: 15px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.success {
+  color: #7fe0a1;
+}
+
+.error {
+  color: #ff8989;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: rgba(0,0,0,.75);
+  padding: 18px;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background: #102039;
+  border: 1px solid #294361;
+  border-radius: 13px;
+  width: 100%;
+  max-width: 480px;
+  margin: 35px auto;
+  padding: 21px;
+}
+
+.modal-content h2 {
+  margin: 0 0 18px;
+  font-size: 20px;
+}
+
+label {
+  display: block;
+  margin: 14px 0 7px;
+  color: #cbd8e8;
+  font-size: 14px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #38516f;
+  border-radius: 8px;
+  background: #091629;
+  color: white;
+  outline: none;
+  font-size: 15px;
+}
+
+input:focus {
+  border-color: #5c99f0;
+}
+
+.contact-list {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #294361;
+  border-radius: 9px;
+  margin-top: 10px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid #243b59;
+}
+
+.contact-item:last-child {
+  border-bottom: none;
+}
+
+.contact-item input {
+  width: 18px;
+  height: 18px;
+  accent-color: #3978d5;
+}
+
+.contact-item span {
+  overflow-wrap: anywhere;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  flex: 1;
+}
+
+.small-note {
+  color: #91a6c0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 420px) {
+  .top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .top button {
+    width: 100%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>SIMPLEXPING</h2>
+  <a href="dashboard.html">Back to Dashboard</a>
+</header>
+
+<main>
+
+  <div class="top">
+    <h1>My Groups</h1>
+    <button id="createBtn">+ Create Group</button>
+  </div>
+
+  <div id="message"></div>
+  <div id="groupsList">
+    <div class="empty">Loading your groups...</div>
+  </div>
+
+</main>
+
+<div class="modal" id="createModal">
+  <div class="modal-content">
+
+    <h2>Create a Group</h2>
+
+    <label for="groupName">Group name</label>
+    <input
+      type="text"
+      id="groupName"
+      maxlength="50"
+      placeholder="Enter group name"
+    >
+
+    <label>Select group members</label>
+    <p class="small-note">
+      Only your accepted contacts are shown. Selected contacts
+      will be added directly to the group.
+    </p>
+
+    <div id="contactList" class="contact-list">
+      <div class="empty">Loading contacts...</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="secondary" id="cancelBtn">Cancel</button>
+      <button id="saveGroupBtn">Create Group</button>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+
+import {
+  collection,
+  collectionGroup,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  doc,
+  writeBatch,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import { auth, db } from "./firebase.js";
+
+const groupsList = document.getElementById("groupsList");
+const message = document.getElementById("message");
+const createModal = document.getElementById("createModal");
+const contactList = document.getElementById("contactList");
+const groupNameInput = document.getElementById("groupName");
+const saveGroupBtn = document.getElementById("saveGroupBtn");
+
+let currentUser = null;
+let acceptedContacts = [];
+
+function showMessage(text, type = "success") {
+  message.textContent = text;
+  message.className = type;
+}
+
+function clearMessage() {
+  message.textContent = "";
+  message.className = "";
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+}
+
+onAuthStateChanged(auth, async user => {
+
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  currentUser = user;
+
+  await loadGroups();
+
+});
+
+async function loadGroups() {
+
+  groupsList.innerHTML =
+    '<div class="empty">Loading your groups...</div>';
+
+  clearMessage();
+
+  try {
+
+    const membershipQuery = query(
+      collectionGroup(db, "members"),
+      where("userId", "==", currentUser.uid)
+    );
+
+    const membershipSnapshot = await getDocs(membershipQuery);
+
+    const groupDocuments = [];
+
+    for (const membership of membershipSnapshot.docs) {
+
+      const groupRef = membership.ref.parent.parent;
+
+      if (!groupRef) continue;
+
+      const groupSnapshot = await getDoc(groupRef);
+
+      if (groupSnapshot.exists()) {
+        groupDocuments.push({
+          id: groupSnapshot.id,
+          ...groupSnapshot.data()
+        });
+      }
+
+    }
+
+    groupDocuments.sort((a, b) => {
+      const aTime = a.createdAt?.toMillis?.() || 0;
+      const bTime = b.createdAt?.toMillis?.() || 0;
+      return bTime - aTime;
+    });
+
+    if (groupDocuments.length === 0) {
+      groupsList.innerHTML = `
+        <div class="empty">
+          <h3>No groups yet</h3>
+          <p>You have not joined any groups.</p>
+          <p>Create a group to get started.</p>
+        </div>
+      `;
+      return;
+    }
+
+    groupsList.innerHTML = "";
+
+    groupDocuments.forEach(group => {
+
+      const groupName = escapeHTML(group.groupName || "Unnamed group");
+      const initial = escapeHTML(
+        (group.groupName || "G").charAt(0).toUpperCase()
+      );
+
+      const card = document.createElement("div");
+      card.className = "group-card";
+
+      card.innerHTML = `
+        <div class="group-avatar">${initial}</div>
+        <div class="group-info">
+          <h3>${groupName}</h3>
+          <p>${group.adminCount || 1} group administrator(s)</p>
+        </div>
+      `;
+
+      groupsList.appendChild(card);
+
+    });
+
+  } catch (error) {
+
+    console.error("Load groups error:", error);
+
+    groupsList.innerHTML = `
+      <div class="empty">
+        Could not load your groups.
+        Please refresh and try again.
+      </div>
+    `;
+
+    showMessage(error.message, "error");
+
+  }
+
+}
+
+document.getElementById("createBtn").addEventListener("click", async () => {
+
+  clearMessage();
+
+  groupNameInput.value = "";
+  createModal.style.display = "block";
+
+  await loadAcceptedContacts();
+
+});
+
+document.getElementById("cancelBtn").addEventListener("click", () => {
+  createModal.style.display = "none";
+});
+
+createModal.addEventListener("click", event => {
+  if (event.target === createModal) {
+    createModal.style.display = "none";
+  }
+});
+
+async function loadAcceptedContacts() {
+
+  contactList.innerHTML =
+    '<div class="empty">Loading accepted contacts...</div>';
+
+  acceptedContacts = [];
+
+  try {
+
+    const contactsQuery = query(
+      collection(db, "contacts"),
+      where("participants", "array-contains", currentUser.uid)
+    );
+
+    const snapshot = await getDocs(contactsQuery);
+
+    const contactItems = [];
+
+    for (const contactDoc of snapshot.docs) {
+
+      const contactData = contactDoc.data();
+
+      if (
+        !Array.isArray(contactData.participants) ||
+        contactData.participants.length !== 2
+      ) {
+        continue;
+      }
+
+      const otherUserId = contactData.participants.find(
+        uid => uid !== currentUser.uid
+      );
+
+      if (!otherUserId) continue;
+
+      const userSnapshot = await getDoc(
+        doc(db, "users", otherUserId)
+      );
+
+      if (!userSnapshot.exists()) continue;
+
+      const userData = userSnapshot.data();
+
+      contactItems.push({
+        contactId: contactDoc.id,
+        userId: otherUserId,
+        fullName: userData.fullName || userData.username || "User",
+        username: userData.username || ""
+      });
+
+    }
+
+    acceptedContacts = contactItems;
+
+    if (contactItems.length === 0) {
+      contactList.innerHTML = `
+        <div class="empty">
+          You do not have any accepted contacts yet.
+        </div>
+      `;
+      return;
+    }
+
+    contactList.innerHTML = "";
+
+    contactItems.sort((a, b) =>
+      a.fullName.localeCompare(b.fullName)
+    );
+
+    contactItems.forEach(contact => {
+
+      const item = document.createElement("label");
+      item.className = "contact-item";
+
+      item.innerHTML = `
+        <input
+          type="checkbox"
+          class="member-checkbox"
+          value="${escapeHTML(contact.userId)}"
+        >
+        <span>
+          <strong>${escapeHTML(contact.fullName)}</strong>
+          ${
+            contact.username
+              ? `<br><small>@${escapeHTML(contact.username)}</small>`
+              : ""
+          }
+        </span>
+      `;
+
+      contactList.appendChild(item);
+
+    });
+
+  } catch (error) {
+
+    console.error("Load contacts error:", error);
+
+    contactList.innerHTML = `
+      <div class="empty">
+        Could not load your accepted contacts.
+      </div>
+    `;
+
+  }
+
+}
+
+saveGroupBtn.addEventListener("click", async () => {
+
+  clearMessage();
+
+  const groupName = groupNameInput.value.trim();
+
+  if (!groupName) {
+    alert("Please enter a group name.");
+    return;
+  }
+
+  if (groupName.length > 50) {
+    alert("The group name cannot exceed 50 characters.");
+    return;
+  }
+
+  const selectedUserIds = Array.from(
+    document.querySelectorAll(".member-checkbox:checked")
+  ).map(input => input.value);
+
+  const selectedContacts = acceptedContacts.filter(contact =>
+    selectedUserIds.includes(contact.userId)
+  );
+
+  if (selectedContacts.length !== selectedUserIds.length) {
+    alert("One or more selected contacts could not be verified. Please try again.");
+    return;
+  }
+
+  saveGroupBtn.disabled = true;
+  saveGroupBtn.textContent = "Creating...";
+
+  try {
+
+    const groupRef = doc(collection(db, "groupConversations"));
+
+    // First create the group and its creator membership together.
+
+    const firstBatch = writeBatch(db);
+
+    firstBatch.set(groupRef, {
+      groupName: groupName,
+      createdBy: currentUser.uid,
+      adminCount: 1,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    const creatorMembershipRef = doc(
+      db,
+      "groupConversations",
+      groupRef.id,
+      "members",
+      currentUser.uid
+    );
+
+    firstBatch.set(creatorMembershipRef, {
+      userId: currentUser.uid,
+      role: "admin",
+      addedBy: currentUser.uid,
+      joinedAt: serverTimestamp()
+    });
+
+    await firstBatch.commit();
+
+    // Add the selected accepted contacts after the creator
+    // has become an administrator.
+
+    if (selectedContacts.length > 0) {
+
+      const membersBatch = writeBatch(db);
+
+      selectedContacts.forEach(contact => {
+
+        const memberRef = doc(
+          db,
+          "groupConversations",
+          groupRef.id,
+          "members",
+          contact.userId
+        );
+
+        membersBatch.set(memberRef, {
+          userId: contact.userId,
+          role: "member",
+          addedBy: currentUser.uid,
+          contactId: contact.contactId,
+          joinedAt: serverTimestamp()
+        });
+
+      });
+
+      await membersBatch.commit();
+
+    }
+
+    createModal.style.display = "none";
+
+    showMessage(
+      "Group created successfully. Your selected contacts have been added.",
+      "success"
+    );
+
+    await loadGroups();
+
+  } catch (error) {
+
+    console.error("Create group error:", error);
+
+    showMessage(
+      "The group could not be completed: " + error.message,
+      "error"
+    );
+
+    await loadGroups();
+
+  } finally {
+
+    saveGroupBtn.disabled = false;
+    saveGroupBtn.textContent = "Create Group";
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>
