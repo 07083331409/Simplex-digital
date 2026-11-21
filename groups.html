@@ -90,6 +90,19 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 13px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .2s, transform .2s;
+}
+
+.group-card:hover {
+  border-color: #3978d5;
+  transform: translateY(-2px);
+}
+
+.group-card:focus-visible {
+  outline: 3px solid #6da5ff;
+  outline-offset: 3px;
 }
 
 .group-avatar {
@@ -395,8 +408,8 @@ async function loadGroups() {
 
       if (groupSnapshot.exists()) {
         groupDocuments.push({
-          id: groupSnapshot.id,
-          ...groupSnapshot.data()
+          ...groupSnapshot.data(),
+          id: groupSnapshot.id
         });
       }
 
@@ -428,8 +441,9 @@ async function loadGroups() {
         (group.groupName || "G").charAt(0).toUpperCase()
       );
 
-      const card = document.createElement("div");
+      const card = document.createElement("a");
       card.className = "group-card";
+      card.href = "group-chat.html?groupId=" + encodeURIComponent(group.id);
 
       card.innerHTML = `
         <div class="group-avatar">${initial}</div>

@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#091426">
+<title>Group Chat | SIMPLEXPING</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #081321;
+  color: #e8eef7;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.site-header {
+  min-height: 66px;
+  padding: 12px max(18px, calc((100% - 920px) / 2));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #0d1b30;
+  border-bottom: 1px solid #20334d;
+}
+
+.back-link {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  color: #d7e4f5;
+  text-decoration: none;
+  font-size: 25px;
+}
+
+.back-link:hover,
+.back-link:focus-visible {
+  background: #1b2e49;
+}
+
+.brand {
+  color: #6da5ff;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+
+.chat-app {
+  width: 100%;
+  max-width: 920px;
+  flex: 1;
+  min-height: 0;
+  margin: 24px auto;
+  padding: 0 16px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-app[hidden],
+#pageError[hidden] {
+  display: none;
+}
+
+.chat-panel {
+  min-height: min(72vh, 760px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #0d1b30;
+  border: 1px solid #20334d;
+  border-radius: 15px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .18);
+}
+
+.chat-header {
+  min-height: 76px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: #111f33;
+  border-bottom: 1px solid #263b56;
+}
+
+.group-avatar {
+  width: 45px;
+  height: 45px;
+  flex: 0 0 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #1b3455;
+  font-size: 21px;
+}
+
+.group-heading {
+  min-width: 0;
+  flex: 1;
+}
+
+.group-heading h1 {
+  margin: 0 0 4px;
+  overflow: hidden;
+  color: #edf3fc;
+  font-size: 17px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-heading p {
+  margin: 0;
+  color: #91a8c3;
+  font-size: 12px;
+}
+
+.members-button {
+  min-height: 40px;
+  padding: 8px 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #38516f;
+  border-radius: 9px;
+  background: #172a43;
+  color: #dce8f8;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.members-button:hover {
+  border-color: #5c99f0;
+  background: #1b3455;
+}
+
+#chatStatus {
+  padding: 9px 16px;
+  color: #9eb0c8;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+#chatStatus.error {
+  color: #ffaaaa;
+}
+
+#messages {
+  min-height: 300px;
+  flex: 1;
+  padding: 22px clamp(14px, 4vw, 34px);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  background: radial-gradient(ellipse at 50% 0%, rgba(35, 67, 104, .16), transparent 58%);
+  scrollbar-color: #344f70 #0e1b2d;
+}
+
+.empty-state {
+  margin: auto;
+  color: #91a6c0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.message-row {
+  width: 100%;
+  display: flex;
+}
+
+.message-row.own {
+  justify-content: flex-end;
+}
+
+.message-content {
+  max-width: min(78%, 620px);
+  min-width: 90px;
+}
+
+.message-meta {
+  margin: 0 4px 5px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: #9eb0c8;
+  font-size: 11px;
+}
+
+.message-sender {
+  overflow: hidden;
+  color: #b7c9e0;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-time {
+  flex: 0 0 auto;
+  color: #8095af;
+}
+
+.message-bubble {
+  padding: 11px 14px;
+  border: 1px solid #263b56;
+  border-radius: 15px 15px 15px 4px;
+  background: #14263e;
+  color: #edf3fc;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.message-row.own .message-bubble {
+  border-color: #3269b5;
+  border-radius: 15px 15px 4px 15px;
+  background: #24599e;
+}
+
+.message-row.own .message-meta {
+  flex-direction: row-reverse;
+}
+
+.message-form {
+  padding: 14px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: #111f33;
+  border-top: 1px solid #263b56;
+}
+
+.message-form input {
+  min-width: 0;
+  min-height: 46px;
+  flex: 1;
+  padding: 11px 14px;
+  border: 1px solid #38516f;
+  border-radius: 10px;
+  outline: none;
+  background: #091629;
+  color: #edf3fc;
+  font-size: 14px;
+}
+
+.message-form input::placeholder {
+  color: #8194ad;
+}
+
+.message-form input:focus {
+  border-color: #5c99f0;
+  box-shadow: 0 0 0 2px rgba(92, 153, 240, .15);
+}
+
+.message-form input:disabled {
+  opacity: .65;
+}
+
+.send-button {
+  min-height: 46px;
+  padding: 0 19px;
+  border: 0;
+  border-radius: 10px;
+  background: #3978d5;
+  color: #fff;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.send-button:hover:not(:disabled) {
+  background: #4a8ae8;
+}
+
+.send-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+#pageError {
+  width: calc(100% - 32px);
+  max-width: 650px;
+  margin: 50px auto;
+  padding: 22px;
+  border: 1px solid #753d51;
+  border-radius: 12px;
+  background: #291c2b;
+  color: #ffb9c3;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.members-modal {
+  position: fixed;
+  z-index: 5;
+  inset: 0;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, .72);
+}
+
+.members-modal[hidden] {
+  display: none;
+}
+
+.members-panel {
+  width: 100%;
+  max-width: 440px;
+  max-height: min(80vh, 620px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #294361;
+  border-radius: 14px;
+  background: #102039;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .4);
+}
+
+.members-panel-header {
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #243b59;
+}
+
+.members-panel-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #38516f;
+  border-radius: 8px;
+  background: #172a43;
+  color: #dce8f8;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background: #243b59;
+}
+
+#membersList {
+  padding: 8px 14px 14px;
+  overflow-y: auto;
+}
+
+.member-item {
+  min-height: 62px;
+  padding: 10px 4px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid #20334d;
+}
+
+.member-item:last-child {
+  border-bottom: 0;
+}
+
+.member-avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #49617f;
+  border-radius: 50%;
+  background: #28518a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.member-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.member-details {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.member-name {
+  color: #e8eef7;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-label {
+  margin-left: 7px;
+  padding: 3px 7px;
+  border: 1px solid #41699e;
+  border-radius: 99px;
+  background: #1b3455;
+  color: #a9ccff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.member-status {
+  padding: 22px 8px;
+  color: #9eb0c8;
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    min-height: 60px;
+    padding: 10px 14px;
+  }
+
+  .chat-app {
+    margin: 12px auto 0;
+    padding: 0 8px 8px;
+  }
+
+  .chat-panel {
+    min-height: calc(100dvh - 82px);
+    border-radius: 12px;
+  }
+
+  .chat-header {
+    min-height: 68px;
+    padding: 11px;
+    gap: 9px;
+  }
+
+  .group-avatar {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .group-heading h1 {
+    font-size: 15px;
+  }
+
+  .members-button {
+    width: 42px;
+    padding: 8px;
+    justify-content: center;
+    font-size: 0;
+  }
+
+  .members-button .members-icon {
+    font-size: 18px;
+  }
+
+  #messages {
+    min-height: 240px;
+    padding: 17px 11px;
+  }
+
+  .message-content {
+    max-width: 88%;
+  }
+
+  .message-form {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .message-form input {
+    min-height: 44px;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .send-button {
+    min-height: 44px;
+    padding: 0 14px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <a class="back-link" href="groups.html" aria-label="Back to groups">‹</a>
+  <div class="brand">SIMPLEXPING</div>
+</header>
+
+<main class="chat-app" id="chatApp" hidden>
+  <section class="chat-panel" aria-label="Group conversation">
+    <header class="chat-header">
+      <div class="group-avatar" aria-hidden="true">👥</div>
+      <div class="group-heading">
+        <h1 id="groupName">Group chat</h1>
+        <p>SIMPLEXPING group conversation</p>
+      </div>
+      <button
+        class="members-button"
+        id="membersButton"
+        type="button"
+        aria-haspopup="dialog"
+        aria-controls="membersModal"
+      >
+        <span class="members-icon" aria-hidden="true">👥</span>
+        Members <span id="memberCount">0</span>
+      </button>
+    </header>
+
+    <div id="chatStatus" role="status" hidden></div>
+    <section id="messages" role="log" aria-live="polite" aria-label="Group messages">
+      <p class="empty-state">Loading messages...</p>
+    </section>
+
+    <form class="message-form" id="messageForm">
+      <input
+        id="messageInput"
+        type="text"
+        maxlength="2000"
+        placeholder="Write a message..."
+        aria-label="Message"
+        autocomplete="off"
+        disabled
+      >
+      <button class="send-button" id="sendButton" type="submit" disabled>
+        Send
+      </button>
+    </form>
+  </section>
+</main>
+
+<div id="loading" class="member-status" role="status">Loading group chat...</div>
+<div id="pageError" role="alert" hidden></div>
+
+<div
+  class="members-modal"
+  id="membersModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="membersHeading"
+  hidden
+>
+  <section class="members-panel">
+    <header class="members-panel-header">
+      <h2 id="membersHeading">Group members</h2>
+      <button
+        class="close-button"
+        id="closeMembersButton"
+        type="button"
+        aria-label="Close members"
+      >×</button>
+    </header>
+    <div id="membersList">
+      <div class="member-status">Loading members...</div>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import { auth, db } from "./firebase.js";
+
+const groupId = new URLSearchParams(window.location.search).get("groupId");
+const loading = document.getElementById("loading");
+const pageError = document.getElementById("pageError");
+const chatApp = document.getElementById("chatApp");
+const groupName = document.getElementById("groupName");
+const memberCount = document.getElementById("memberCount");
+const chatStatus = document.getElementById("chatStatus");
+const messagesBox = document.getElementById("messages");
+const messageForm = document.getElementById("messageForm");
+const messageInput = document.getElementById("messageInput");
+const sendButton = document.getElementById("sendButton");
+const membersButton = document.getElementById("membersButton");
+const membersModal = document.getElementById("membersModal");
+const closeMembersButton = document.getElementById("closeMembersButton");
+const membersList = document.getElementById("membersList");
+
+let currentUser = null;
+let memberProfiles = new Map();
+let messagesReady = false;
+let sending = false;
+let stopMembershipListener = null;
+let stopMessagesListener = null;
+let membershipActive = false;
+
+function showPageError(text) {
+  loading.hidden = true;
+  chatApp.hidden = true;
+  pageError.hidden = false;
+  pageError.textContent = text;
+}
+
+function showChatStatus(text, isError = false) {
+  chatStatus.textContent = text;
+  chatStatus.classList.toggle("error", isError);
+  chatStatus.hidden = !text;
+}
+
+function getInitials(name) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return parts.length > 1
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : (parts[0]?.[0] || "U").toUpperCase();
+}
+
+function getMemberName(member, profile) {
+  const candidates = [
+    profile.fullName,
+    profile.username,
+    member.userId === currentUser.uid ? currentUser.displayName : ""
+  ];
+  const name = candidates.find(value =>
+    typeof value === "string" && value.trim()
+  );
+  return name ? name.trim() : "SIMPLEXPING member";
+}
+
+function makeMemberRow(member, profile) {
+  const name = getMemberName(member, profile);
+  const row = document.createElement("div");
+  row.className = "member-item";
+
+  const avatar = document.createElement("div");
+  avatar.className = "member-avatar";
+  avatar.textContent = getInitials(name);
+
+  if (typeof profile.photoURL === "string" && profile.photoURL.trim()) {
+    const image = document.createElement("img");
+    image.src = profile.photoURL;
+    image.alt = "";
+    image.loading = "lazy";
+    image.addEventListener("error", () => image.remove(), { once: true });
+    avatar.appendChild(image);
+  }
+
+  const details = document.createElement("div");
+  details.className = "member-details";
+
+  const nameLabel = document.createElement("span");
+  nameLabel.className = "member-name";
+  nameLabel.textContent = name;
+  details.appendChild(nameLabel);
+
+  if (member.role === "admin") {
+    const adminLabel = document.createElement("span");
+    adminLabel.className = "admin-label";
+    adminLabel.textContent = "Admin";
+    details.appendChild(adminLabel);
+  }
+
+  row.append(avatar, details);
+  return row;
+}
+
+function renderMessage(messageDocument) {
+  const data = messageDocument.data();
+  const senderId = typeof data.senderId === "string" ? data.senderId : "";
+  const profile = memberProfiles.get(senderId) || {};
+  const senderName = getMemberName({ userId: senderId }, profile);
+
+  const row = document.createElement("article");
+  row.className = "message-row" +
+    (senderId === currentUser.uid ? " own" : "");
+
+  const content = document.createElement("div");
+  content.className = "message-content";
+
+  const meta = document.createElement("div");
+  meta.className = "message-meta";
+
+  const sender = document.createElement("span");
+  sender.className = "message-sender";
+  sender.textContent = senderName;
+  meta.appendChild(sender);
+
+  const time = document.createElement("time");
+  time.className = "message-time";
+  if (data.createdAt && typeof data.createdAt.toDate === "function") {
+    const date = data.createdAt.toDate();
+    time.dateTime = date.toISOString();
+    time.textContent = date.toLocaleString([], {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  } else {
+    time.textContent = "Sending...";
+  }
+  meta.appendChild(time);
+
+  const bubble = document.createElement("div");
+  bubble.className = "message-bubble";
+  bubble.textContent = typeof data.text === "string" ? data.text : "";
+
+  content.append(meta, bubble);
+  row.appendChild(content);
+  return row;
+}
+
+function renderMessages(snapshot) {
+  messagesBox.replaceChildren();
+
+  if (snapshot.empty) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "No messages yet. Start the conversation.";
+    messagesBox.appendChild(empty);
+    return;
+  }
+
+  snapshot.docs.forEach(messageDocument => {
+    messagesBox.appendChild(renderMessage(messageDocument));
+  });
+  messagesBox.scrollTop = messagesBox.scrollHeight;
+}
+
+async function loadMembers() {
+  const membersSnapshot = await getDocs(
+    collection(db, "groupConversations", groupId, "members")
+  );
+  const members = membersSnapshot.docs
+    .map(memberDocument => memberDocument.data())
+    .filter(member => typeof member.userId === "string");
+
+  if (!members.some(member => member.userId === currentUser.uid)) {
+    throw new Error("Your active group membership could not be verified.");
+  }
+
+  const profiles = await Promise.all(members.map(async member => {
+    const profileSnapshot = await getDoc(doc(db, "users", member.userId));
+    return [
+      member.userId,
+      profileSnapshot.exists() ? profileSnapshot.data() : {}
+    ];
+  }));
+  memberProfiles = new Map(profiles);
+  memberCount.textContent = String(members.length);
+  membersList.replaceChildren();
+
+  if (members.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "member-status";
+    empty.textContent = "No members to display.";
+    membersList.appendChild(empty);
+    return;
+  }
+
+  members.sort((a, b) => {
+    if (a.role === "admin" && b.role !== "admin") return -1;
+    if (b.role === "admin" && a.role !== "admin") return 1;
+    return getMemberName(a, memberProfiles.get(a.userId) || {})
+      .localeCompare(getMemberName(b, memberProfiles.get(b.userId) || {}));
+  });
+
+  members.forEach(member => {
+    membersList.appendChild(
+      makeMemberRow(member, memberProfiles.get(member.userId) || {})
+    );
+  });
+}
+
+function stopChatListeners() {
+  if (typeof stopMembershipListener === "function") {
+    stopMembershipListener();
+    stopMembershipListener = null;
+  }
+  if (typeof stopMessagesListener === "function") {
+    stopMessagesListener();
+    stopMessagesListener = null;
+  }
+}
+
+async function openGroup(user) {
+  stopChatListeners();
+  messagesReady = false;
+  membershipActive = false;
+
+  if (!groupId) {
+    showPageError("This group link is missing its group ID. Return to your groups and try again.");
+    return;
+  }
+
+  currentUser = user;
+
+  try {
+    const membershipRef = doc(
+      db,
+      "groupConversations",
+      groupId,
+      "members",
+      user.uid
+    );
+    const membershipSnapshot = await getDoc(membershipRef);
+
+    if (
+      !membershipSnapshot.exists() ||
+      membershipSnapshot.data().userId !== user.uid
+    ) {
+      showPageError("You are not an active member of this group.");
+      return;
+    }
+
+    const groupSnapshot = await getDoc(
+      doc(db, "groupConversations", groupId)
+    );
+
+    if (!groupSnapshot.exists()) {
+      showPageError("This group could not be found. It may have been removed.");
+      return;
+    }
+
+    groupName.textContent = groupSnapshot.data().groupName || "Unnamed group";
+    await loadMembers();
+
+    membershipActive = true;
+    stopMembershipListener = onSnapshot(
+      membershipRef,
+      snapshot => {
+        if (
+          !snapshot.exists() ||
+          snapshot.data().userId !== user.uid
+        ) {
+          membershipActive = false;
+          messagesReady = false;
+          messageInput.disabled = true;
+          sendButton.disabled = true;
+          if (typeof stopMessagesListener === "function") {
+            stopMessagesListener();
+            stopMessagesListener = null;
+          }
+          showChatStatus("Your active group membership has ended.", true);
+        }
+      },
+      error => {
+        console.error("Group membership listener error:", error);
+        membershipActive = false;
+        messagesReady = false;
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        if (typeof stopMessagesListener === "function") {
+          stopMessagesListener();
+          stopMessagesListener = null;
+        }
+        showChatStatus(
+          "Could not verify your group membership. Check your connection and permissions.",
+          true
+        );
+      }
+    );
+
+    loading.hidden = true;
+    chatApp.hidden = false;
+    showChatStatus("Loading messages...");
+
+    const messagesQuery = query(
+      collection(db, "groupConversations", groupId, "messages"),
+      orderBy("createdAt", "asc")
+    );
+
+    stopMessagesListener = onSnapshot(
+      messagesQuery,
+      snapshot => {
+        if (!membershipActive) return;
+        messagesReady = true;
+        messageInput.disabled = false;
+        sendButton.disabled = false;
+        showChatStatus("");
+        renderMessages(snapshot);
+      },
+      error => {
+        console.error("Group message listener error:", error);
+        messagesReady = false;
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        showChatStatus(
+          "Could not load group messages. Check your connection and Firestore permissions.",
+          true
+        );
+      }
+    );
+  } catch (error) {
+    console.error("Could not open group chat:", error);
+    const detail = error.code || error.message;
+    showPageError(
+      "Could not open this group chat. Check your connection and Firestore permissions." +
+      (detail ? " Error: " + detail : "")
+    );
+  }
+}
+
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    stopChatListeners();
+    window.location.replace("login.html");
+    return;
+  }
+
+  openGroup(user);
+});
+
+messageForm.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const text = messageInput.value.trim();
+  if (
+    !text ||
+    sending ||
+    !currentUser ||
+    !membershipActive ||
+    !messagesReady
+  ) {
+    return;
+  }
+
+  sending = true;
+  sendButton.disabled = true;
+
+  try {
+    await addDoc(
+      collection(db, "groupConversations", groupId, "messages"),
+      {
+        senderId: currentUser.uid,
+        text,
+        type: "text",
+        createdAt: serverTimestamp()
+      }
+    );
+    messageInput.value = "";
+    showChatStatus("");
+  } catch (error) {
+    console.error("Could not send group message:", error);
+    showChatStatus(
+      "Message not sent. Check your connection and Firestore permissions.",
+      true
+    );
+  } finally {
+    sending = false;
+    sendButton.disabled = !messagesReady || !membershipActive;
+  }
+});
+
+membersButton.addEventListener("click", () => {
+  membersModal.hidden = false;
+  closeMembersButton.focus();
+});
+
+function closeMembers() {
+  membersModal.hidden = true;
+  membersButton.focus();
+}
+
+closeMembersButton.addEventListener("click", closeMembers);
+membersModal.addEventListener("click", event => {
+  if (event.target === membersModal) closeMembers();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !membersModal.hidden) {
+    closeMembers();
+  }
+});
+</script>
+
+</body>
+</html>
