@@ -719,6 +719,510 @@ footer {
   }
 }
 </style>
+<style>
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 18% 24%, rgba(42, 91, 151, .2), transparent 34rem),
+    radial-gradient(ellipse at 88% 8%, rgba(65, 125, 113, .1), transparent 28rem),
+    #081321;
+}
+
+header {
+  min-height: 72px;
+  padding: 0 clamp(18px, 4vw, 58px);
+  background: rgba(8, 19, 33, .92);
+  border-bottom: 1px solid rgba(177, 197, 215, .12);
+  backdrop-filter: blur(18px);
+}
+
+.brand {
+  gap: 8px;
+  font-size: 17px;
+  letter-spacing: .45px;
+}
+
+.brand-logo {
+  width: 44px;
+  height: 44px;
+  filter: drop-shadow(0 5px 13px rgba(67, 144, 209, .2));
+}
+
+.header-right {
+  gap: 10px;
+}
+
+.profile-link {
+  width: 39px;
+  height: 39px;
+  background: linear-gradient(145deg, #427f8a, #294a62);
+  border-color: rgba(161, 206, 210, .7);
+  box-shadow: 0 0 0 3px rgba(121, 177, 180, .09);
+}
+
+.profile-link:hover {
+  border-color: #b6e0d9;
+  box-shadow: 0 0 0 4px rgba(121, 177, 180, .18);
+}
+
+.logout-btn {
+  padding: 8px 13px;
+  color: #d7e0e9;
+  border-color: rgba(167, 188, 208, .26);
+  border-radius: 9px;
+  font-size: 12px;
+}
+
+.logout-btn:hover {
+  background: rgba(142, 190, 182, .09);
+  border-color: rgba(142, 190, 182, .52);
+}
+
+.menu-trigger {
+  width: 39px;
+  height: 39px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #becbd8;
+}
+
+.menu-trigger:hover,
+.menu-trigger:focus-visible {
+  color: #a9d8cf;
+  background: rgba(142, 190, 182, .1);
+}
+
+.menu-trigger svg {
+  width: 21px;
+  height: 21px;
+}
+
+.menu-panel {
+  position: fixed;
+  inset: 80px clamp(14px, 4vw, 52px) auto auto;
+  width: min(250px, calc(100vw - 28px));
+  margin: 0;
+  padding: 8px;
+  border: 1px solid rgba(157, 184, 207, .2);
+  border-radius: 14px;
+  background: #101f31;
+  box-shadow: 0 20px 54px rgba(0, 0, 0, .48);
+  color: var(--text);
+}
+
+.menu-panel a {
+  min-height: 46px;
+  padding: 11px 12px;
+  border-radius: 9px;
+}
+
+.menu-panel a:hover {
+  background: rgba(142, 190, 182, .11);
+}
+
+.container {
+  width: min(1180px, 100%);
+  min-height: calc(100vh - 126px);
+  padding: clamp(32px, 7vh, 78px) clamp(20px, 6vw, 76px) 34px;
+  grid-template-areas:
+    "welcome"
+    "title"
+    "links"
+    "account";
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto;
+  align-content: center;
+  gap: 18px;
+}
+
+.welcome {
+  padding: 0 0 5px;
+}
+
+.welcome::after {
+  top: -80px;
+  left: -90px;
+  width: min(600px, 80vw);
+  height: 360px;
+  background: radial-gradient(ellipse, rgba(62, 115, 167, .17), transparent 70%);
+}
+
+.welcome::before {
+  content: "YOUR CONVERSATION SPACE";
+  margin-bottom: 13px;
+  padding: 6px 11px;
+  border-left: 2px solid #8ebeb6;
+  border-radius: 0 5px 5px 0;
+  background: linear-gradient(90deg, rgba(142, 190, 182, .13), transparent);
+  color: #a8d1c9;
+  font-size: 10px;
+  letter-spacing: 1.65px;
+}
+
+.welcome h1 {
+  max-width: 900px;
+  margin-bottom: 9px;
+  color: #f1f5f8;
+  font-size: clamp(32px, 4.8vw, 54px);
+  font-weight: 620;
+  letter-spacing: -1.6px;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.welcome h1 span {
+  background: linear-gradient(96deg, #96c8ed 5%, #a8d8ca 78%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.welcome p {
+  max-width: 570px;
+  color: #aab9c8;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.section-title {
+  color: #dce5ed;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: .1px;
+}
+
+.section-title::before {
+  width: 7px;
+  height: 7px;
+  margin-right: 9px;
+  background: #8ebeb6;
+  box-shadow: 0 0 12px rgba(142, 190, 182, .5);
+}
+
+.dashboard-grid {
+  width: min(860px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(160, 185, 207, .15);
+  border-radius: 22px;
+  background: linear-gradient(140deg, rgba(21, 40, 61, .82), rgba(13, 27, 44, .9));
+  box-shadow: 0 22px 55px rgba(0, 0, 0, .2), inset 0 1px rgba(255, 255, 255, .035);
+}
+
+.dashboard-grid::before,
+.dashboard-grid::after {
+  display: none;
+}
+
+.dashboard-grid > a[href="profile.html"] {
+  display: none;
+}
+
+.dashboard-card {
+  min-height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  padding: 18px 14px;
+  border: 1px solid transparent;
+  border-right: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: #e7edf3;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+
+.dashboard-card:last-child {
+  border: 1px solid transparent;
+}
+
+.dashboard-card:hover,
+.dashboard-card:focus-visible {
+  border-color: rgba(154, 185, 207, .17);
+  background: rgba(255, 255, 255, .045);
+  color: #fff;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .035);
+  transform: translateY(-2px);
+}
+
+.dashboard-card::after {
+  display: none;
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 1px solid var(--shortcut-border);
+  border-radius: 15px;
+  background: linear-gradient(145deg, var(--shortcut-fill), rgba(255, 255, 255, .025));
+  color: var(--shortcut-accent);
+  box-shadow: 0 8px 22px var(--shortcut-glow);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.dashboard-grid > a:nth-of-type(1) {
+  --shortcut-accent: #a9caf1;
+  --shortcut-border: rgba(128, 172, 223, .34);
+  --shortcut-fill: rgba(65, 116, 178, .29);
+  --shortcut-glow: rgba(68, 122, 188, .12);
+}
+
+.dashboard-grid > a:nth-of-type(2) {
+  --shortcut-accent: #a5d5c9;
+  --shortcut-border: rgba(112, 181, 162, .32);
+  --shortcut-fill: rgba(55, 125, 108, .27);
+  --shortcut-glow: rgba(55, 125, 108, .12);
+}
+
+.dashboard-grid > a:nth-of-type(3) {
+  --shortcut-accent: #dfc99e;
+  --shortcut-border: rgba(190, 159, 104, .3);
+  --shortcut-fill: rgba(138, 106, 57, .22);
+  --shortcut-glow: rgba(138, 106, 57, .1);
+}
+
+.dashboard-card:hover .card-icon {
+  box-shadow: 0 10px 26px var(--shortcut-glow);
+  transform: translateY(-2px);
+}
+
+.card-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
+.dashboard-card h3 {
+  margin: 0 0 4px;
+  color: var(--shortcut-accent);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.dashboard-card p {
+  max-width: 155px;
+  color: #a7b5c4;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.dashboard-card:hover h3 {
+  color: #f4f7f9;
+}
+
+.account-box {
+  width: min(860px, 100%);
+  min-height: 64px;
+  padding: 15px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  border: 0;
+  border-top: 1px solid rgba(157, 184, 207, .14);
+  box-shadow: none;
+}
+
+.account-box::before {
+  display: none;
+}
+
+.account-box h3 {
+  color: #a8d1c9;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.account-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 24px;
+  color: #d2dbe4;
+  font-size: 11px;
+}
+
+.account-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.account-info strong {
+  color: #8193a6;
+  font-size: 9px;
+  letter-spacing: .8px;
+}
+
+.account-info > div:nth-child(1) strong {
+  color: #8ebeb6;
+}
+
+.account-info > div:nth-child(2) strong {
+  color: #91b2dc;
+}
+
+.account-info > div:nth-child(3) strong {
+  color: #c9b894;
+}
+
+footer {
+  min-height: 54px;
+  border-top-color: rgba(157, 184, 207, .1);
+  color: #8090a1;
+  font-size: 10px;
+}
+
+@media (max-width: 700px) {
+  header {
+    min-height: 64px;
+    padding: 0 16px;
+  }
+
+  .brand {
+    gap: 6px;
+    font-size: 14px;
+  }
+
+  .brand-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .header-right {
+    gap: 6px;
+  }
+
+  .profile-link,
+  .menu-trigger {
+    width: 36px;
+    height: 36px;
+  }
+
+  .logout-btn {
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
+  .menu-panel {
+    inset: 70px 12px auto auto;
+  }
+
+  .container {
+    min-height: calc(100vh - 118px);
+    padding: clamp(28px, 7vh, 56px) 20px 28px;
+    gap: 15px;
+  }
+
+  .welcome h1 {
+    font-size: clamp(30px, 7.5vw, 42px);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 6px;
+    border-radius: 19px;
+  }
+
+  .dashboard-card {
+    min-height: 98px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 5px;
+    text-align: center;
+  }
+
+  .dashboard-card p {
+    display: none;
+  }
+
+  .card-icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+    border-radius: 13px;
+  }
+
+  .account-box {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .account-info {
+    width: 100%;
+    gap: 10px 14px;
+  }
+}
+
+@media (max-width: 430px) {
+  .brand {
+    font-size: 12px;
+  }
+
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header-right {
+    gap: 4px;
+  }
+
+  .profile-link,
+  .menu-trigger {
+    width: 33px;
+    height: 33px;
+  }
+
+  .logout-btn {
+    padding: 7px 8px;
+    font-size: 10px;
+  }
+
+  .container {
+    padding: 30px 16px 24px;
+    gap: 13px;
+  }
+
+  .welcome p {
+    font-size: 13px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-card h3 {
+    font-size: 12px;
+  }
+
+  .account-info {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .account-info > div {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 8px;
+  }
+}
+
+@media (max-height: 650px) {
+  .container {
+    min-height: 0;
+    align-content: start;
+    padding-top: 26px;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -746,31 +1250,29 @@ footer {
       Log out
     </button>
 
-    <details class="account-menu">
-      <summary class="menu-trigger" aria-label="Open account menu" title="Account menu">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <circle cx="12" cy="5" r="1.7"/>
-          <circle cx="12" cy="12" r="1.7"/>
-          <circle cx="12" cy="19" r="1.7"/>
+    <button class="menu-trigger" type="button" popovertarget="accountMenu" aria-label="Open account menu" title="Account menu">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <circle cx="12" cy="5" r="1.7"/>
+        <circle cx="12" cy="12" r="1.7"/>
+        <circle cx="12" cy="19" r="1.7"/>
+      </svg>
+    </button>
+    <nav class="menu-panel" id="accountMenu" popover="auto" aria-label="Account options">
+      <a href="profile.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.2"/>
+          <path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>
         </svg>
-      </summary>
-      <nav class="menu-panel" aria-label="Account options">
-        <a href="profile.html">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="8" r="3.2"/>
-            <path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>
-          </svg>
-          <span>My Profile</span>
-        </a>
-        <a href="profile.html">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.4 2.4-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-3.4v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-2.4-2.4.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H4v-3.4h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 2.4-2.4.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V4h3.4v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 2.4 2.4-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v3.4H21a1.7 1.7 0 0 0-1.6 1Z"/>
-          </svg>
-          <span>Account Settings</span>
-        </a>
-      </nav>
-    </details>
+        <span>My Profile</span>
+      </a>
+      <a href="profile.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.4 2.4-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-3.4v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-2.4-2.4.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H4v-3.4h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 2.4-2.4.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V4h3.4v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 2.4 2.4-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v3.4H21a1.7 1.7 0 0 0-1.6 1Z"/>
+        </svg>
+        <span>Account Settings</span>
+      </a>
+    </nav>
   </div>
 </header>
 
@@ -779,12 +1281,11 @@ footer {
   <section class="welcome">
     <h1>Welcome back, <span id="userName">User</span>!</h1>
     <p>
-      Your conversations and connections start here.
-      Welcome to your SIMPLEXPING space.
+      Your people are one tap away. Pick up a conversation or bring everyone together.
     </p>
   </section>
 
-  <h2 class="section-title">Your Workspace</h2>
+  <h2 class="section-title">Jump back in</h2>
 
   <section class="dashboard-grid">
 
