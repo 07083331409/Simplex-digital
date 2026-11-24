@@ -33,8 +33,19 @@ header {
 
 header h2 {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: #6da5ff;
   font-size: 21px;
+}
+
+.brand-logo {
+  display: block;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 header a {
@@ -254,6 +265,20 @@ input:focus {
 }
 
 @media (max-width: 420px) {
+  header {
+    padding: 12px 14px;
+  }
+
+  header h2 {
+    gap: 5px;
+    font-size: 18px;
+  }
+
+  .brand-logo {
+    width: 46px;
+    height: 46px;
+  }
+
   .top {
     align-items: flex-start;
     flex-direction: column;
@@ -269,7 +294,7 @@ input:focus {
 <body>
 
 <header>
-  <h2>SIMPLEXPING</h2>
+  <h2><img class="brand-logo" src="images/icon-192.png" alt="">SIMPLEXPING</h2>
   <a href="dashboard.html">Back to Dashboard</a>
 </header>
 

@@ -34,10 +34,21 @@ header {
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 22px;
   font-weight: bold;
   letter-spacing: 1px;
   white-space: nowrap;
+}
+
+.brand-logo {
+  display: block;
+  width: 68px;
+  height: 68px;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .brand span {
@@ -224,6 +235,11 @@ footer {
     font-size: 18px;
   }
 
+  .brand-logo {
+    width: 54px;
+    height: 54px;
+  }
+
   .header-right {
     gap: 10px;
   }
@@ -250,6 +266,18 @@ footer {
     font-size: 12px;
   }
 }
+
+@media (max-width: 380px) {
+  .brand {
+    gap: 5px;
+    font-size: 15px;
+  }
+
+  .brand-logo {
+    width: 44px;
+    height: 44px;
+  }
+}
 </style>
 </head>
 
@@ -261,7 +289,7 @@ footer {
 <div id="dashboard" style="display:none;">
 
 <header>
-  <div class="brand">SIMPLEX<span>PING</span></div>
+  <div class="brand"><img class="brand-logo" src="images/icon-192.png" alt="">SIMPLEX<span>PING</span></div>
 
   <div class="header-right">
     <a

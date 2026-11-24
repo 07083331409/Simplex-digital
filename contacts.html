@@ -33,8 +33,20 @@ header {
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 22px;
   font-weight: bold;
+  white-space: nowrap;
+}
+
+.brand-logo {
+  display: block;
+  width: 64px;
+  height: 64px;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .brand span {
@@ -287,6 +299,20 @@ header a {
 }
 
 @media(max-width: 500px) {
+  .brand {
+    gap: 5px;
+    font-size: 17px;
+  }
+
+  .brand-logo {
+    width: 48px;
+    height: 48px;
+  }
+
+  header a {
+    font-size: 12px;
+  }
+
   body {
     padding: 15px;
   }
@@ -319,7 +345,7 @@ header a {
 <body>
 
 <header>
-  <div class="brand">SIMPLEX<span>PING</span></div>
+  <div class="brand"><img class="brand-logo" src="images/icon-192.png" alt="">SIMPLEX<span>PING</span></div>
   <a href="dashboard.html">← Dashboard</a>
 </header>
 

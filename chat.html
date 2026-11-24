@@ -44,6 +44,14 @@ header {
   gap: 12px;
 }
 
+.brand-logo {
+  display: block;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
 .back {
   width: 38px;
   height: 38px;
@@ -774,6 +782,15 @@ button:disabled {
 }
 
 @media (max-width: 380px) {
+  .top {
+    gap: 8px;
+  }
+
+  .brand-logo {
+    width: 46px;
+    height: 46px;
+  }
+
   header {
     padding: 14px;
   }
@@ -845,6 +862,7 @@ button:disabled {
   <div class="top">
     <a href="dashboard.html" class="back"
        aria-label="Back to dashboard">‹</a>
+    <img class="brand-logo chat-brand-logo" src="images/icon-192.png" alt="SIMPLEXPING">
     <h1 id="pageTitle">My Messages</h1>
   </div>
 

@@ -55,14 +55,18 @@ a {
 }
 
 .brand-icon {
-  width: 39px;
-  height: 39px;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
   display: grid;
   place-items: center;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #0878ed, #42a7ff);
-  color: white;
-  box-shadow: 0 5px 20px #0878ed55;
+}
+
+.brand-icon .brand-logo {
+  width: 76px;
+  height: 76px;
+  display: block;
+  object-fit: contain;
 }
 
 .blue-text {
@@ -619,8 +623,14 @@ a {
   }
 
   .brand-icon {
-    width: 33px;
-    height: 33px;
+    width: 46px;
+    height: 46px;
+    flex-basis: 46px;
+  }
+
+  .brand-icon .brand-logo {
+    width: 62px;
+    height: 62px;
   }
 
   .nav {

@@ -42,17 +42,20 @@ body {
 }
 
 .logo-mark {
-  width: 52px;
-  height: 52px;
-  margin: 0 auto 12px;
-  border-radius: 15px;
-  background: linear-gradient(135deg, #244B7D, #3978D5);
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 25px;
-  font-weight: bold;
-  color: white;
+  background: transparent;
+}
+
+.logo-mark .brand-logo {
+  display: block;
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
 }
 
 .logo h2 {
@@ -292,7 +295,7 @@ input::placeholder {
 <div class="container">
 
   <div class="logo">
-    <div class="logo-mark">S</div>
+    <div class="logo-mark"><img class="brand-logo" src="images/icon-192.png" alt="SIMPLEXPING"></div>
     <h2>SIMPLEX<span>PING</span></h2>
     <p>Connect. Communicate. Belong.</p>
   </div>
