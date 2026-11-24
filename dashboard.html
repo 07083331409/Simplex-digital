@@ -9,77 +9,107 @@
 <title>Dashboard | SIMPLEXPING</title>
 
 <style>
+:root {
+  color-scheme: dark;
+  --page: #081321;
+  --line: #263b56;
+  --mint: #8ebeb6;
+  --sapphire: #91b2dc;
+  --champagne: #c9b894;
+  --text: #edf3fc;
+  --muted: #9aabc1;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 body {
-  background: #0B1424;
-  color: #EDF3FC;
+  background:
+    radial-gradient(ellipse at 86% 14%, rgba(89, 127, 175, .16), transparent 30rem),
+    radial-gradient(ellipse at 15% 2%, rgba(75, 135, 125, .14), transparent 36rem),
+    var(--page);
+  color: var(--text);
   min-height: 100vh;
 }
 
 header {
-  min-height: 75px;
-  padding: 0 6%;
+  min-height: 68px;
+  padding: 0 clamp(18px, 4vw, 54px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #111E32;
-  border-bottom: 1px solid #263750;
-  gap: 12px;
+  background: rgba(10, 22, 38, .94);
+  border-bottom: 1px solid rgba(150, 177, 196, .13);
+  gap: 18px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 22px;
-  font-weight: bold;
-  letter-spacing: 1px;
+  gap: 9px;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: .3px;
   white-space: nowrap;
 }
 
 .brand-logo {
   display: block;
-  width: 68px;
-  height: 68px;
+  width: 46px;
+  height: 46px;
   flex: 0 0 auto;
   object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(142, 190, 182, .16));
 }
 
 .brand span {
-  color: #5C99F0;
+  color: #b6d2cf;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 11px;
 }
 
-/* Clickable profile picture */
+.account-menu {
+  position: relative;
+  z-index: 5;
+}
+
 .profile-link {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   overflow: hidden;
-  background: #3978D5;
-  color: #fff;
+  background: linear-gradient(145deg, #426c72, #263e4d);
+  color: var(--text);
   text-decoration: none;
   font-weight: bold;
-  border: 2px solid #49617F;
+  border: 2px solid #587078;
+  box-shadow: 0 0 0 3px rgba(142, 190, 182, .08);
+  transition: border-color .2s, box-shadow .2s;
 }
 
-.profile-link:focus-visible {
-  outline: 3px solid #69A5FA;
+.profile-link:hover {
+  border-color: var(--mint);
+  box-shadow: 0 0 0 4px rgba(142, 190, 182, .13);
+}
+
+.profile-link:focus-visible,
+.logout-btn:focus-visible,
+.dashboard-card:focus-visible,
+.menu-trigger:focus-visible,
+.menu-panel a:focus-visible {
+  outline: 2px solid var(--mint);
   outline-offset: 3px;
 }
 
@@ -92,15 +122,20 @@ header {
 
 .logout-btn {
   background: transparent;
-  border: 1px solid #49617F;
-  color: #EDF3FC;
-  padding: 10px 15px;
-  border-radius: 7px;
+  border: 1px solid rgba(158, 181, 198, .3);
+  color: #d3dce6;
+  padding: 8px 12px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background .2s, border-color .2s, color .2s;
 }
 
 .logout-btn:hover {
-  background: #263750;
+  background: rgba(255, 255, 255, .045);
+  border-color: #82999e;
+  color: #fff;
 }
 
 .logout-btn:disabled {
@@ -108,174 +143,579 @@ header {
   cursor: wait;
 }
 
+.menu-trigger {
+  list-style: none;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #c3ced8;
+  cursor: pointer;
+  transition: background .18s, color .18s;
+}
+
+.menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.menu-trigger::marker {
+  content: "";
+}
+
+.menu-trigger:hover,
+.account-menu[open] .menu-trigger {
+  color: var(--mint);
+  background: rgba(142, 190, 182, .1);
+}
+
+.menu-trigger svg {
+  width: 20px;
+  height: 20px;
+}
+
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 10;
+  width: 208px;
+  padding: 7px;
+  border: 1px solid rgba(155, 181, 196, .2);
+  border-radius: 11px;
+  background: #111f30;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .35);
+}
+
+.menu-panel a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 11px;
+  border-radius: 7px;
+  color: #dce5ed;
+  font-size: 13px;
+  text-decoration: none;
+  transition: background .18s, color .18s;
+}
+
+.menu-panel a:hover {
+  background: rgba(142, 190, 182, .1);
+  color: #fff;
+}
+
+.menu-panel svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  color: var(--mint);
+}
+
+.menu-panel a:first-child svg {
+  color: var(--sapphire);
+}
+
+.menu-panel a:last-child svg {
+  color: var(--champagne);
+}
+
 .container {
-  max-width: 1150px;
+  width: min(1160px, 100%);
+  min-height: calc(100vh - 122px);
   margin: auto;
-  padding: 45px 22px;
+  padding: clamp(28px, 6vh, 62px) clamp(20px, 5vw, 56px) clamp(22px, 4vh, 38px);
+  display: grid;
+  grid-template-areas:
+    "welcome"
+    "title"
+    "links"
+    "account";
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto;
+  align-content: center;
+  gap: clamp(12px, 2vh, 20px);
 }
 
 .welcome {
-  margin-bottom: 35px;
+  position: relative;
+  isolation: isolate;
+  grid-area: welcome;
+  margin: 0;
+  padding: 0 0 4px;
+}
+
+.welcome::after {
+  position: absolute;
+  top: -38px;
+  left: -48px;
+  z-index: -1;
+  width: min(430px, 70vw);
+  height: 230px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(93, 138, 179, .16), transparent 70%);
+  content: "";
+  pointer-events: none;
+}
+
+.welcome::before {
+  content: "A QUIETER SPACE TO CONNECT";
+  display: table;
+  margin-bottom: 11px;
+  padding: 5px 9px;
+  border-left: 2px solid var(--mint);
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, rgba(142, 190, 182, .19), rgba(142, 190, 182, 0));
+  color: #b6d9d2;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
 }
 
 .welcome h1 {
-  font-size: 30px;
-  margin-bottom: 10px;
+  font-size: clamp(31px, 3.8vw, 46px);
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -1.2px;
+  margin-bottom: 8px;
 }
 
 .welcome h1 span {
-  color: #69A5FA;
+  background: linear-gradient(95deg, #a9d8cd 8%, #d7e5df 58%, #e0cfa8);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .welcome p {
-  color: #9AAAC0;
+  max-width: 600px;
+  color: var(--muted);
+  font-size: 14px;
   line-height: 1.6;
 }
 
 .section-title {
-  font-size: 18px;
-  margin-bottom: 18px;
+  grid-area: title;
+  align-self: end;
+  color: #d3dce5;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  margin: 0;
+}
+
+.section-title::before {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 9px 1px 0;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 10px rgba(142, 190, 182, .35);
+  content: "";
 }
 
 .dashboard-grid {
+  position: relative;
+  grid-area: links;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: clamp(14px, 3vw, 38px);
+  padding: 8px 0 17px;
+}
+
+.dashboard-grid::before,
+.dashboard-grid::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(145, 178, 220, .45), rgba(142, 190, 182, .3) 52%, rgba(201, 184, 148, .38));
+  content: "";
+}
+
+.dashboard-grid::before {
+  top: 0;
+}
+
+.dashboard-grid::after {
+  bottom: 0;
+}
+
+.dashboard-grid > a[href="profile.html"] {
+  display: none;
 }
 
 .dashboard-card {
-  background: #111E32;
-  border: 1px solid #263750;
-  border-radius: 13px;
-  padding: 25px;
-  min-height: 155px;
+  --shortcut-accent: var(--mint);
+  --shortcut-border: rgba(142, 190, 182, .42);
+  --shortcut-glow: rgba(75, 135, 125, .14);
+  position: relative;
+  min-width: 0;
+  min-height: 92px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 12px 12px 0;
+  border: 0;
+  border-right: 1px solid rgba(154, 177, 194, .14);
+  background: transparent;
   text-decoration: none;
-  color: #EDF3FC;
-  transition: 0.2s;
+  color: var(--text);
+  transition: color .18s;
 }
 
-.dashboard-card:hover {
-  border-color: #3978D5;
-  transform: translateY(-3px);
+.dashboard-card:last-child {
+  border-right: 0;
+}
+
+.dashboard-card::after {
+  position: absolute;
+  left: 0;
+  bottom: -17px;
+  width: 44px;
+  height: 2px;
+  content: "";
+  background: linear-gradient(90deg, var(--shortcut-accent), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .2s;
+}
+
+.dashboard-card:hover,
+.dashboard-card:focus-visible {
+  color: #fff;
+}
+
+.dashboard-card:hover::after,
+.dashboard-card:focus-visible::after {
+  transform: scaleX(1);
 }
 
 .card-icon {
-  width: 43px;
-  height: 43px;
-  border-radius: 10px;
-  background: #1B3455;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 21px;
-  margin-bottom: 17px;
+  border: 1px solid var(--shortcut-border);
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 24%, rgba(255, 255, 255, .16), rgba(255, 255, 255, .025) 72%);
+  color: var(--shortcut-accent);
+  box-shadow: 0 0 24px var(--shortcut-glow);
+  transition: transform .2s, filter .2s, box-shadow .2s;
+}
+
+.dashboard-grid > a:nth-of-type(1) {
+  --shortcut-accent: #a9c7ec;
+  --shortcut-border: rgba(145, 178, 220, .48);
+  --shortcut-glow: rgba(109, 151, 204, .16);
+}
+
+.dashboard-grid > a:nth-of-type(2) {
+  --shortcut-accent: #a4d0c7;
+  --shortcut-border: rgba(142, 190, 182, .48);
+  --shortcut-glow: rgba(75, 135, 125, .17);
+}
+
+.dashboard-grid > a:nth-of-type(3) {
+  --shortcut-accent: #dec694;
+  --shortcut-border: rgba(201, 184, 148, .48);
+  --shortcut-glow: rgba(201, 184, 148, .13);
+}
+
+.dashboard-card:hover .card-icon {
+  filter: brightness(1.12);
+  box-shadow: 0 0 26px var(--shortcut-glow);
+  transform: translateY(-2px);
+}
+
+.card-icon svg {
+  display: block;
+  width: 25px;
+  height: 25px;
 }
 
 .dashboard-card h3 {
-  font-size: 17px;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
+  color: var(--shortcut-accent);
+  font-size: 16px;
+  font-weight: 600;
+  transition: color .18s;
 }
 
 .dashboard-card p {
-  font-size: 13px;
-  color: #9AAAC0;
+  color: #9baaba;
+  font-size: 12px;
   line-height: 1.5;
 }
 
+.dashboard-card:hover h3 {
+  color: var(--mint);
+}
+
 .account-box {
-  margin-top: 35px;
-  background: #111E32;
-  border: 1px solid #263750;
-  border-radius: 13px;
-  padding: 24px;
+  position: relative;
+  grid-area: account;
+  min-width: 0;
+  margin: 0;
+  padding: 17px 0 0;
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 4vw, 48px);
+}
+
+.account-box::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(142, 190, 182, .45), rgba(145, 178, 220, .24), transparent 82%);
+  content: "";
 }
 
 .account-box h3 {
-  margin-bottom: 17px;
+  flex: 0 0 auto;
+  margin: 0;
+  color: #a8cec7;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .2px;
 }
 
 .account-info {
-  color: #9AAAC0;
-  font-size: 14px;
-  line-height: 2;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 24px;
+  color: #d1dbe3;
+  font-size: 11px;
+  line-height: 1.45;
   overflow-wrap: anywhere;
 }
 
+.account-info > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .account-info strong {
-  color: #EDF3FC;
+  color: #8698a9;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+}
+
+.account-info > div:nth-child(1) strong {
+  color: #a8d1c9;
+}
+
+.account-info > div:nth-child(2) strong {
+  color: #a9c5e4;
+}
+
+.account-info > div:nth-child(3) strong {
+  color: #d4bd8e;
 }
 
 footer {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
   text-align: center;
-  padding: 30px 15px;
-  color: #71839D;
-  font-size: 12px;
+  justify-content: center;
+  padding: 13px 15px;
+  color: #7f8e9e;
+  font-size: 11px;
+  border-top: 1px solid rgba(154, 177, 194, .1);
 }
 
 #loading {
   text-align: center;
   padding: 100px 20px;
-  color: #9AAAC0;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 #error {
   display: none;
-  color: #FFB9C3;
+  color: #e0b99a;
   text-align: center;
-  padding: 20px;
+  padding: 18px;
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .container {
+    padding-left: clamp(22px, 6vw, 64px);
+    padding-right: clamp(22px, 6vw, 64px);
+  }
+
+  .dashboard-card {
+    gap: 11px;
+  }
+
+  .account-box {
+    gap: 24px;
+  }
+
+  .account-info {
+    gap: 14px;
+  }
 }
 
 @media (max-width: 600px) {
   header {
-    padding: 0 18px;
-  }
-
-  .brand {
-    font-size: 18px;
-  }
-
-  .brand-logo {
-    width: 54px;
-    height: 54px;
-  }
-
-  .header-right {
+    min-height: 62px;
+    padding: 0 15px;
     gap: 10px;
   }
 
-  .profile-link {
-    width: 40px;
-    height: 40px;
-  }
-
-  .container {
-    padding: 35px 17px;
-  }
-
-  .welcome h1 {
-    font-size: 25px;
-  }
-
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .logout-btn {
-    padding: 9px 11px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 380px) {
   .brand {
-    gap: 5px;
-    font-size: 15px;
+    gap: 6px;
+    font-size: 14px;
   }
 
   .brand-logo {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .header-right {
+    gap: 7px;
+  }
+
+  .profile-link {
+    width: 34px;
+    height: 34px;
+  }
+
+  .container {
+    min-height: calc(100vh - 116px);
+    padding: 34px 22px 26px;
+    gap: 14px;
+  }
+
+  .welcome h1 {
+    font-size: clamp(29px, 7vw, 36px);
+  }
+
+  .dashboard-grid {
+    gap: 8px;
+  }
+
+  .dashboard-card {
+    min-height: 112px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 8px;
+    text-align: center;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .card-icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  .card-icon svg {
+    width: 23px;
+    height: 23px;
+  }
+
+  .dashboard-card h3 {
+    font-size: 14px;
+  }
+
+  .dashboard-card p {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .logout-btn {
+    padding: 7px 9px;
+    font-size: 10px;
+  }
+
+  .menu-trigger {
+    width: 34px;
+    height: 34px;
+  }
+
+  .account-box {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .account-info {
+    width: 100%;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand {
+    gap: 5px;
+    font-size: 13px;
+  }
+
+  .brand-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .dashboard-card {
+    min-height: 0;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 13px 3px;
+    text-align: left;
+    border-bottom: 1px solid rgba(154, 177, 194, .13);
+  }
+
+  .dashboard-card:last-child {
+    border-bottom: 0;
+  }
+
+  .dashboard-card::after {
+    bottom: -1px;
+  }
+
+  .account-info {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .account-info > div {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-height: 600px) {
+  .container {
+    min-height: 0;
+    align-content: start;
+    padding-top: 28px;
   }
 }
 </style>
@@ -305,6 +745,32 @@ footer {
     <button class="logout-btn" id="logoutBtn" type="button">
       Log out
     </button>
+
+    <details class="account-menu">
+      <summary class="menu-trigger" aria-label="Open account menu" title="Account menu">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <circle cx="12" cy="5" r="1.7"/>
+          <circle cx="12" cy="12" r="1.7"/>
+          <circle cx="12" cy="19" r="1.7"/>
+        </svg>
+      </summary>
+      <nav class="menu-panel" aria-label="Account options">
+        <a href="profile.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="8" r="3.2"/>
+            <path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>
+          </svg>
+          <span>My Profile</span>
+        </a>
+        <a href="profile.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.4 2.4-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-3.4v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-2.4-2.4.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H4v-3.4h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 2.4-2.4.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V4h3.4v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 2.4 2.4-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v3.4H21a1.7 1.7 0 0 0-1.6 1Z"/>
+          </svg>
+          <span>Account Settings</span>
+        </a>
+      </nav>
+    </details>
   </div>
 </header>
 
@@ -323,31 +789,47 @@ footer {
   <section class="dashboard-grid">
 
     <a href="chat.html" class="dashboard-card">
-      <div class="card-icon">💬</div>
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-5.5A7.5 7.5 0 1 1 20 11.5Z"/>
+          <path d="M8 11h.01M12 11h.01M16 11h.01"/>
+        </svg>
+      </div>
       <h3>Messages</h3>
       <p>Open your conversations and connect with people.</p>
     </a>
 
     <a href="contacts.html" class="dashboard-card">
-      <div class="card-icon">👥</div>
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="9" cy="8" r="3"/>
+          <path d="M3.5 19v-1.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V19Z"/>
+          <path d="M16 5.3a3 3 0 0 1 0 5.8M17 13.2a4.7 4.7 0 0 1 3.5 4.6V19h-3"/>
+        </svg>
+      </div>
       <h3>Contacts</h3>
       <p>Explore and manage your personal connections.</p>
     </a>
 
     <a href="groups.html" class="dashboard-card">
-      <div class="card-icon">👥</div>
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="8" cy="8" r="2.6"/>
+          <circle cx="16" cy="8" r="2.6"/>
+          <path d="M3.5 18v-1a4.5 4.5 0 0 1 9 0v1ZM11.5 18v-1a4.5 4.5 0 0 1 9 0v1Z"/>
+        </svg>
+      </div>
       <h3>Groups</h3>
       <p>Create groups and chat with your members.</p>
     </a>
 
     <a href="profile.html" class="dashboard-card">
-      <div class="card-icon">👤</div>
-      <h3>My Profile</h3>
-      <p>View and manage your personal account information.</p>
-    </a>
-
-    <a href="profile.html" class="dashboard-card">
-      <div class="card-icon">⚙️</div>
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="m19.4 15 .1.1a1.7 1.7 0 0 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 0 1-3.4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a1.7 1.7 0 1 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 0 1 0-3.4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a1.7 1.7 0 1 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2V2a1.7 1.7 0 0 1 3.4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a1.7 1.7 0 1 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 0 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z"/>
+        </svg>
+      </div>
       <h3>Account Settings</h3>
       <p>Manage your account details and preferences.</p>
     </a>
